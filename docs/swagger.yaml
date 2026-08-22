@@ -1,0 +1,139 @@
+definitions:
+  internal_auth.AccountResponse:
+    properties:
+      banned_until:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      last_login_at:
+        type: string
+      role:
+        $ref: '#/definitions/internal_auth.Role'
+      username:
+        type: string
+    type: object
+  internal_auth.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_auth.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      account:
+        $ref: '#/definitions/internal_auth.AccountResponse'
+    type: object
+  internal_auth.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_auth.Role:
+    enum:
+    - player
+    - admin
+    type: string
+    x-enum-varnames:
+    - RolePlayer
+    - RoleAdmin
+  supermarket-backend_internal_response.NonDataResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  supermarket-backend_internal_response.Response-internal_auth_LoginResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/internal_auth.LoginResponse'
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Supermarket backend API
+  title: Supermarket API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate account and return account data
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_response.Response-internal_auth_LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_response.NonDataResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_response.NonDataResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_response.NonDataResponse'
+      summary: Login account
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create new account
+      parameters:
+      - description: Register payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_response.NonDataResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_response.NonDataResponse'
+      summary: Register account
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

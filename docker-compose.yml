@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    container_name: smallsupermarket-server-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: secure_password
+      DB_NAME: smallsupermarket_database
+
+  postgres:
+    image: postgres:17
+    container_name: smallsupermarket-database
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secure_password
+      POSTGRES_DB: smallsupermarket_database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS idx_employees_branch_id;
