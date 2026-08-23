@@ -1,1 +1,1 @@
-DROP INDEX IF EXISTS idx_employees_branch_id;
+DROP INDEX IF EXISTS idx_users_branch_id;

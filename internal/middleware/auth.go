@@ -1,98 +1,83 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
-	"supermarket-backend/internal/auth"
+	"supermarket-backend/infrastructure/jwt"
 	"supermarket-backend/internal/response"
+
+	"github.com/gin-gonic/gin"
 )
 
-type contextKey string
+const ContextUserKey = "user"
 
-const ContextUserKey contextKey = "user"
-
-func Auth(
-	next http.Handler,
-) http.Handler {
-	return http.HandlerFunc(func(
-		w http.ResponseWriter,
-		r *http.Request,
-	) {
-		authHeader := r.Header.Get(
-			"Authorization",
-		)
+func Auth(jwtService *jwt.JWTService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
 
 		if authHeader == "" {
 			response.NonDataJSON(
-				w,
+				c.Writer,
 				http.StatusUnauthorized,
 				"Missing authorization header",
 			)
+			c.Abort()
 			return
 		}
 
-		parts := strings.Split(
-			authHeader,
-			" ",
-		)
+		parts := strings.SplitN(authHeader, " ", 2)
 
 		if len(parts) != 2 {
 			response.NonDataJSON(
-				w,
+				c.Writer,
 				http.StatusUnauthorized,
 				"Invalid authorization header",
 			)
+			c.Abort()
 			return
 		}
 
 		if parts[0] != "Bearer" {
 			response.NonDataJSON(
-				w,
+				c.Writer,
 				http.StatusUnauthorized,
 				"Invalid auth scheme",
 			)
+			c.Abort()
 			return
 		}
 
 		tokenString := parts[1]
 
-		claims, err := auth.ParseToken(
-			tokenString,
-		)
+		claims, err := jwtService.ParseToken(tokenString)
 		if err != nil {
 			response.NonDataJSON(
-				w,
+				c.Writer,
 				http.StatusUnauthorized,
 				"Invalid token",
 			)
+			c.Abort()
 			return
 		}
 
-		ctx := context.WithValue(
-			r.Context(),
-			ContextUserKey,
-			claims,
-		)
+		c.Set(ContextUserKey, claims)
 
-		next.ServeHTTP(
-			w,
-			r.WithContext(ctx),
-		)
-	})
+		c.Next()
+	}
 }
 
-func GetClaims(
-	ctx context.Context,
-) *auth.Claims {
-	claims, ok := ctx.Value(
-		ContextUserKey,
-	).(*auth.Claims)
+func GetClaims(c *gin.Context) *jwt.Claims {
+	claims, exists := c.Get(ContextUserKey)
 
+	if !exists {
+		return nil
+	}
+
+	result, ok := claims.(*jwt.Claims)
 	if !ok {
 		return nil
 	}
 
-	return claims
+	return result
 }

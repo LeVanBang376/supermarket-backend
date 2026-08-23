@@ -3,37 +3,35 @@ package middleware
 import (
 	"net/http"
 
-	"supermarket-backend/internal/auth"
 	"supermarket-backend/internal/response"
+
+	"github.com/gin-gonic/gin"
 )
 
-func RequireRole(
-	role auth.Role,
-) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(
-			func(w http.ResponseWriter, r *http.Request) {
-				claims := GetClaims(r.Context())
-				if claims == nil {
-					response.NonDataJSON(
-						w,
-						http.StatusUnauthorized,
-						"Unauthorized",
-					)
-					return
-				}
+func RequireRole(roleID string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims := GetClaims(c)
 
-				if claims.Role != role {
-					response.NonDataJSON(
-						w,
-						http.StatusForbidden,
-						"You don't have permission to access this resource",
-					)
-					return
-				}
+		if claims == nil {
+			response.NonDataJSON(
+				c.Writer,
+				http.StatusUnauthorized,
+				"Unauthorized",
+			)
+			c.Abort()
+			return
+		}
 
-				next.ServeHTTP(w, r)
-			},
-		)
+		if claims.RoleID != roleID {
+			response.NonDataJSON(
+				c.Writer,
+				http.StatusForbidden,
+				"You don't have permission to access this resource",
+			)
+			c.Abort()
+			return
+		}
+
+		c.Next()
 	}
 }

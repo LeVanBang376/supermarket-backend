@@ -1,30 +1,25 @@
-// @title Supermarket API
-// @version 1.0
-// @description Supermarket backend API
-// @host localhost:8080
-
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
-// @description Type "Bearer" followed by a space and JWT token.
 package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os/signal"
+	"supermarket-backend/infrastructure/db"
+	"supermarket-backend/infrastructure/jwt"
 	"supermarket-backend/internal/config"
-	"supermarket-backend/internal/database"
-	"supermarket-backend/internal/middleware"
+	"supermarket-backend/internal/handler"
+	userRepository "supermarket-backend/internal/repository/user"
+	"supermarket-backend/internal/routes"
+	authService "supermarket-backend/internal/service/auth"
 	"sync/atomic"
 	"syscall"
 	"time"
 
 	_ "supermarket-backend/docs"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -40,79 +35,122 @@ func main() {
 	cfg := config.Load()
 
 	// Setup signal context
-	rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	rootCtx, stop := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
 	defer stop()
 
-	// Readiness endpoint
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		if isShuttingDown.Load() {
-			http.Error(w, "Shutting down", http.StatusServiceUnavailable)
-			return
-		}
-		fmt.Fprintln(w, "OK")
-	})
-
 	// Database
-	pool, err := database.NewPostgresPool(
-		cfg.DatabaseURL,
-	)
-
+	database, err := db.NewPostgresDB(cfg.DatabaseURL)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	defer pool.Close()
-	fmt.Println("Connected to PostgreSQL!")
+	sqlDB, err := database.DB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sqlDB.Close()
 
-	mux := http.NewServeMux()
+	if err := sqlDB.Ping(); err != nil {
+		log.Fatal(err)
+	}
 
-	mux.Handle(
-		"/swagger/",
-		httpSwagger.WrapHandler,
+	log.Println("Connected to PostgreSQL!")
+
+	// Infrastructure
+	jwtService := jwt.NewJWTService(cfg.JWTSecret)
+
+	// Repositories
+	userRepo := userRepository.NewRepository(database)
+
+	// Services
+	authSvc := authService.NewService(
+		userRepo,
+		jwtService,
 	)
 
-	// APIs
-	// authRepository := auth.NewRepository(pool)
-	// authService := auth.NewService(authRepository)
-	// authHandler := auth.NewHandler(authService)
-	// auth.RegisterRoutes(mux, authHandler)
+	// Handlers
+	authHandler := handler.NewAuthHandler(authSvc)
 
-	// Apply middlewares - Recovery and CORS
-	handler := middleware.Recovery(middleware.CORS(cfg.AllowedOrigins)(mux))
+	// Gin
+	router := gin.New()
 
-	// Ensure in-flight requests aren't cancelled immediately on SIGTERM
-	ongoingCtx, stopOngoingGracefully := context.WithCancel(context.Background())
+	// Gin middlewares
+	router.Use(
+		gin.Recovery(),
+		cors.New(cors.Config{
+			AllowOrigins:     cfg.AllowedOrigins,
+			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+			AllowCredentials: false,
+		}),
+	)
+
+	// Readiness endpoint
+	router.GET("/healthz", func(c *gin.Context) {
+		if isShuttingDown.Load() {
+			c.String(http.StatusServiceUnavailable, "Shutting down")
+			return
+		}
+
+		c.String(http.StatusOK, "OK")
+	})
+
+	// Swagger
+	router.GET("/swagger/*any", gin.WrapH(httpSwagger.WrapHandler))
+
+	// Routes
+	routes.RegisterAuthRoutes(
+		router,
+		authHandler,
+	)
+
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: handler,
-		BaseContext: func(_ net.Listener) context.Context {
-			return ongoingCtx
-		},
+		Handler: router,
 	}
 
 	go func() {
 		log.Println("Server starting on :8080.")
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			panic(err)
+
+		if err := server.ListenAndServe(); err != nil &&
+			err != http.ErrServerClosed {
+			log.Fatal(err)
 		}
 	}()
 
-	// Wait for signal
+	// Wait for shutdown signal
 	<-rootCtx.Done()
+
 	stop()
+
 	isShuttingDown.Store(true)
+
 	log.Println("Received shutdown signal, shutting down.")
 
 	// Give time for readiness check to propagate
 	time.Sleep(_readinessDrainDelay)
-	log.Println("Readiness check propagated, now waiting for ongoing requests to finish.")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), _shutdownPeriod)
+	log.Println(
+		"Readiness check propagated, now waiting for ongoing requests to finish.",
+	)
+
+	shutdownCtx, cancel := context.WithTimeout(
+		context.Background(),
+		_shutdownPeriod,
+	)
 	defer cancel()
+
 	err = server.Shutdown(shutdownCtx)
-	stopOngoingGracefully()
+
 	if err != nil {
-		log.Println("Failed to wait for ongoing requests to finish, waiting for forced cancellation.")
+		log.Println(
+			"Failed to wait for ongoing requests to finish, waiting for forced cancellation.",
+		)
+
 		time.Sleep(_shutdownHardPeriod)
 	}
 

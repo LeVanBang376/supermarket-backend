@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	DatabaseURL    string
+	JWTSecret      string
 	AdminUsername  string
 	AdminEmail     string
 	AdminPassword  string
@@ -24,6 +25,7 @@ func Load() *Config {
 
 	cfg := &Config{
 		DatabaseURL:    os.Getenv("DATABASE_URL"),
+		JWTSecret:      os.Getenv("JWT_SECRET"),
 		AdminUsername:  os.Getenv("ADMIN_USERNAME"),
 		AdminEmail:     os.Getenv("ADMIN_EMAIL"),
 		AdminPassword:  os.Getenv("ADMIN_PASSWORD"),
@@ -32,6 +34,10 @@ func Load() *Config {
 
 	if cfg.DatabaseURL == "" {
 		log.Fatal("DATABASE_URL is required")
+	}
+
+	if cfg.JWTSecret == "" {
+		log.Fatal("JWT_SECRET is required")
 	}
 
 	return cfg
