@@ -2,6 +2,8 @@ package model
 
 import "time"
 
+const DefaultBranchID = "BR0001"
+
 type Branch struct {
 	BranchID   string    `gorm:"column:branch_id;type:varchar(6);primaryKey"`
 	BranchName string    `gorm:"column:branch_name;type:varchar(100);not null"`

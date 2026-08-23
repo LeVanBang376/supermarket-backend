@@ -9,12 +9,14 @@ import (
 )
 
 type Config struct {
-	DatabaseURL    string
-	JWTSecret      string
-	AdminUsername  string
-	AdminEmail     string
-	AdminPassword  string
-	AllowedOrigins []string
+	DatabaseURL        string
+	JWTSecret          string
+	SuperAdminUsername string
+	SuperAdminEmail    string
+	SuperAdminPassword string
+	SuperAdminFullName string
+	SuperAdminPhone    string
+	AllowedOrigins     []string
 }
 
 func Load() *Config {
@@ -24,12 +26,14 @@ func Load() *Config {
 	}
 
 	cfg := &Config{
-		DatabaseURL:    os.Getenv("DATABASE_URL"),
-		JWTSecret:      os.Getenv("JWT_SECRET"),
-		AdminUsername:  os.Getenv("ADMIN_USERNAME"),
-		AdminEmail:     os.Getenv("ADMIN_EMAIL"),
-		AdminPassword:  os.Getenv("ADMIN_PASSWORD"),
-		AllowedOrigins: strings.Split(os.Getenv("ALLOWED_ORIGINS"), ","),
+		DatabaseURL:        os.Getenv("DATABASE_URL"),
+		JWTSecret:          os.Getenv("JWT_SECRET"),
+		SuperAdminUsername: os.Getenv("SUPER_ADMIN_USERNAME"),
+		SuperAdminEmail:    os.Getenv("SUPER_ADMIN_EMAIL"),
+		SuperAdminPassword: os.Getenv("SUPER_ADMIN_PASSWORD"),
+		SuperAdminFullName: os.Getenv("SUPER_ADMIN_FULL_NAME"),
+		SuperAdminPhone:    os.Getenv("SUPER_ADMIN_PHONE"),
+		AllowedOrigins:     strings.Split(os.Getenv("ALLOWED_ORIGINS"), ","),
 	}
 
 	if cfg.DatabaseURL == "" {

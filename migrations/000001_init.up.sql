@@ -11,14 +11,14 @@ CREATE TABLE branches (
 );
 
 CREATE TABLE roles (
-    role_id VARCHAR(10) PRIMARY KEY,
+    role_id VARCHAR(20) PRIMARY KEY,
     role_name VARCHAR(30) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE positions (
-    position_id VARCHAR(10) PRIMARY KEY,
+    position_id VARCHAR(20) PRIMARY KEY,
     position_name VARCHAR(30) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -28,11 +28,12 @@ CREATE TABLE users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    email VARCHAR(254) NOT NULL UNIQUE,
     full_name VARCHAR(30) NOT NULL,
     phone_number VARCHAR(15) NOT NULL,
     branch_id VARCHAR(6) NOT NULL,
-    role_id VARCHAR(10) NOT NULL,
-    position_id VARCHAR(10) NOT NULL,
+    role_id VARCHAR(20) NOT NULL,
+    position_id VARCHAR(20) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

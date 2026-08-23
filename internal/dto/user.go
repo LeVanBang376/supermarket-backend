@@ -9,6 +9,7 @@ import (
 type CreateUserRequest struct {
 	Username    string `json:"username" binding:"required"`
 	Password    string `json:"password" binding:"required,min=8"`
+	Email       string `json:"email" binding:"required,email"`
 	FullName    string `json:"full_name" binding:"required"`
 	PhoneNumber string `json:"phone_number" binding:"required"`
 	BranchID    string `json:"branch_id" binding:"required"`
@@ -20,6 +21,7 @@ func (r CreateUserRequest) ToUserModel(passwordHash string) *model.User {
 	return &model.User{
 		Username:     r.Username,
 		PasswordHash: passwordHash,
+		Email:        r.Email,
 		FullName:     r.FullName,
 		PhoneNumber:  r.PhoneNumber,
 		BranchID:     r.BranchID,
@@ -30,6 +32,7 @@ func (r CreateUserRequest) ToUserModel(passwordHash string) *model.User {
 
 type UpdateUserRequest struct {
 	Username    *string `json:"username"`
+	Email       *string `json:"email" binding:"omitempty,email"`
 	FullName    *string `json:"full_name"`
 	PhoneNumber *string `json:"phone_number"`
 	BranchID    *string `json:"branch_id"`
@@ -41,6 +44,7 @@ type UpdateUserRequest struct {
 type UserResponse struct {
 	UserID      uuid.UUID `json:"user_id"`
 	Username    string    `json:"username"`
+	Email       string    `json:"email"`
 	FullName    string    `json:"full_name"`
 	PhoneNumber string    `json:"phone_number"`
 	BranchID    string    `json:"branch_id"`
