@@ -42,13 +42,30 @@ type UpdateUserRequest struct {
 }
 
 type UserResponse struct {
-	UserID      uuid.UUID `json:"user_id"`
-	Username    string    `json:"username"`
-	Email       string    `json:"email"`
-	FullName    string    `json:"full_name"`
-	PhoneNumber string    `json:"phone_number"`
-	BranchID    string    `json:"branch_id"`
-	RoleID      string    `json:"role_id"`
-	PositionID  string    `json:"position_id"`
-	Status      string    `json:"status"`
+	UserID      uuid.UUID         `json:"user_id"`
+	Username    string            `json:"username"`
+	Email       string            `json:"email"`
+	FullName    string            `json:"full_name"`
+	PhoneNumber string            `json:"phone_number"`
+	Branch      *BranchResponse   `json:"branch"`
+	Role        *RoleResponse     `json:"role"`
+	Position    *PositionResponse `json:"position"`
+	Status      string            `json:"status"`
+}
+
+func FromUserModelToResponse(user *model.User) *UserResponse {
+	var u *UserResponse = &UserResponse{}
+
+	u.UserID = user.UserID
+	u.Username = user.Username
+	u.Email = user.Email
+	u.FullName = user.FullName
+	u.PhoneNumber = user.PhoneNumber
+	u.Status = user.Status
+
+	u.Branch = FromBranchModelToResponse(&user.Branch)
+	u.Role = FromRoleModelToResponse(&user.Role)
+	u.Position = FromPositionModelToResponse(&user.Position)
+
+	return u
 }

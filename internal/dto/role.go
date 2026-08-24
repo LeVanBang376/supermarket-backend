@@ -26,21 +26,11 @@ type RoleResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func FromModel(role *model.Role) RoleResponse {
-	return RoleResponse{
-		RoleID:    role.RoleID,
-		RoleName:  role.RoleName,
-		CreatedAt: role.CreatedAt,
-		UpdatedAt: role.UpdatedAt,
-	}
-}
+func FromRoleModelToResponse(role *model.Role) *RoleResponse {
+	var r *RoleResponse = &RoleResponse{}
 
-func FromModels(roles []*model.Role) []RoleResponse {
-	responses := make([]RoleResponse, 0, len(roles))
+	r.RoleID = role.RoleID
+	r.RoleName = role.RoleName
 
-	for _, role := range roles {
-		responses = append(responses, FromModel(role))
-	}
-
-	return responses
+	return r
 }

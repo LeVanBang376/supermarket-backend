@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"supermarket-backend/internal/dto"
+	"supermarket-backend/internal/response"
 	"supermarket-backend/internal/service/auth"
 
 	"github.com/gin-gonic/gin"
@@ -19,24 +20,43 @@ func NewAuthHandler(service *auth.Service) *AuthHandler {
 	}
 }
 
+// Login godoc
+// @Summary      User login
+// @Description  Authenticate a user and return an access token
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body  dto.LoginRequest  true  "Login credentials"
+// @Success      200  {object}  dto.LoginResponse
+// @Failure      400  {object}  map[string]interface{}  "Invalid request"
+// @Failure      401  {object}  map[string]interface{}  "Unauthorized"
+// @Router       /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "invalid request",
-			"error":   err.Error(),
-		})
+		response.NonDataJSON(
+			c.Writer,
+			http.StatusBadRequest,
+			"Invalid request",
+		)
 		return
 	}
 
-	response, err := h.service.Login(c.Request.Context(), req)
+	res, err := h.service.Login(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": err.Error(),
-		})
+		response.NonDataJSON(
+			c.Writer,
+			http.StatusUnauthorized,
+			err.Error(),
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	response.JSON(
+		c.Writer,
+		http.StatusOK,
+		"Login successful",
+		res,
+	)
 }

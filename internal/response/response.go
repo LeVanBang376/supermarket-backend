@@ -8,20 +8,21 @@ import (
 
 // Pagination
 type Pagination struct {
-	Page       int `json:"page"`
-	PerPage    int `json:"per_page"`
-	Total      int `json:"total"`
-	TotalPages int `json:"total_pages"`
+	Page       int   `json:"page"`
+	PerPage    int   `json:"per_page"`
+	Total      int64 `json:"total"`
+	TotalPages int   `json:"total_pages"`
 }
 
 func (p *Pagination) Offset() int {
 	return (p.Page - 1) * p.PerPage
 }
 
-func (p *Pagination) SetTotal(total int) {
+func (p *Pagination) SetTotal(total int64) {
 	p.Total = total
-	p.TotalPages =
-		(total + p.PerPage - 1) / p.PerPage
+	p.TotalPages = int(
+		(total + int64(p.PerPage) - 1) / int64(p.PerPage),
+	)
 }
 
 func NewPagination(r *http.Request) *Pagination {
@@ -51,7 +52,6 @@ func NewPagination(r *http.Request) *Pagination {
 
 // Response
 type Response[T any] struct {
-	Code    int    `json:"code"`
 	Message string `json:"message"`
 	Data    T      `json:"data"`
 }
@@ -78,7 +78,6 @@ func JSON[T any](
 	w.WriteHeader(status)
 
 	json.NewEncoder(w).Encode(Response[T]{
-		Code:    status,
 		Message: message,
 		Data:    data,
 	})

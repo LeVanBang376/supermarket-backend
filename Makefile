@@ -58,9 +58,14 @@ swag:
 	swag init -g cmd/api/main.go --parseDependency --parseInternal
 
 ## ===== RESET =====
+# reset:
+# 	docker compose -f docker-compose.database.yml down -v
+# 	docker compose -f docker-compose.database.yml up -d --build
+# 	@timeout /t 3 /nobreak > nul
+# 	$(MAKE) migrate-up
+# 	$(MAKE) seed
 reset:
-	docker compose -f docker-compose.database.yml down -v
-	docker compose -f docker-compose.database.yml up -d --build
-	@timeout /t 3 /nobreak > nul
+	dropdb -U postgres --if-exists smallsupermarket_database
+	createdb -U postgres smallsupermarket_database
 	$(MAKE) migrate-up
 	$(MAKE) seed

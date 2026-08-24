@@ -62,15 +62,6 @@ func (s *Service) Login(
 
 	return &dto.LoginResponse{
 		AccessToken: accessToken,
-		User: dto.UserResponse{
-			UserID:      user.UserID,
-			Username:    user.Username,
-			FullName:    user.FullName,
-			PhoneNumber: user.PhoneNumber,
-			BranchID:    user.BranchID,
-			RoleID:      user.RoleID,
-			PositionID:  user.PositionID,
-			Status:      user.Status,
-		},
+		User:        *dto.FromUserModelToResponse(user),
 	}, nil
 }

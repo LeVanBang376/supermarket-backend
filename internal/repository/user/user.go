@@ -46,6 +46,9 @@ func (r *Repository) FindByUsername(ctx context.Context, username string) (*mode
 	var user model.User
 
 	err := r.db.WithContext(ctx).
+		Preload("Branch").
+		Preload("Role").
+		Preload("Position").
 		First(&user, "username = ?", username).
 		Error
 
