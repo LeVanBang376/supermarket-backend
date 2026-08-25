@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/auth/login": {
             "post": {
-                "description": "Authenticate a user and return an access token",
+                "description": "Authenticate a user and set the access token in an HttpOnly cookie",
                 "consumes": [
                     "application/json"
                 ],
@@ -62,9 +62,62 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "CookieAuth": []
+                    }
+                ],
+                "description": "Get information of the currently authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get current user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.UserResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "supermarket-backend_internal_dto.BranchResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "branch_id": {
+                    "type": "string"
+                },
+                "branch_name": {
+                    "type": "string"
+                }
+            }
+        },
         "supermarket-backend_internal_dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -91,11 +144,39 @@ const docTemplate = `{
                 }
             }
         },
+        "supermarket-backend_internal_dto.PositionResponse": {
+            "type": "object",
+            "properties": {
+                "position_id": {
+                    "type": "string"
+                },
+                "position_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.RoleResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "string"
+                },
+                "role_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "supermarket-backend_internal_dto.UserResponse": {
             "type": "object",
             "properties": {
-                "branch_id": {
-                    "type": "string"
+                "branch": {
+                    "$ref": "#/definitions/supermarket-backend_internal_dto.BranchResponse"
                 },
                 "email": {
                     "type": "string"
@@ -106,11 +187,11 @@ const docTemplate = `{
                 "phone_number": {
                     "type": "string"
                 },
-                "position_id": {
-                    "type": "string"
+                "position": {
+                    "$ref": "#/definitions/supermarket-backend_internal_dto.PositionResponse"
                 },
-                "role_id": {
-                    "type": "string"
+                "role": {
+                    "$ref": "#/definitions/supermarket-backend_internal_dto.RoleResponse"
                 },
                 "status": {
                     "type": "string"
@@ -125,11 +206,10 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "BearerAuth": {
-            "description": "Type \"Bearer\" followed by a space and JWT token.",
+        "CookieAuth": {
             "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
+            "name": "access_token",
+            "in": "cookie"
         }
     }
 }`

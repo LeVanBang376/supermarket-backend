@@ -2,11 +2,9 @@
 // @version 1.0
 // @description SmallSupermarket APIs
 // @host localhost:8080
-
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
-// @description Type "Bearer" followed by a space and JWT token.
+// @securityDefinitions.apikey CookieAuth
+// @in cookie
+// @name access_token
 package main
 
 import (
@@ -18,6 +16,7 @@ import (
 	"supermarket-backend/infrastructure/jwt"
 	"supermarket-backend/internal/config"
 	"supermarket-backend/internal/handler"
+	"supermarket-backend/internal/middleware"
 	userRepository "supermarket-backend/internal/repository/user"
 	"supermarket-backend/internal/routes"
 	authService "supermarket-backend/internal/service/auth"
@@ -115,6 +114,7 @@ func main() {
 	routes.RegisterAuthRoutes(
 		router,
 		authHandler,
+		middleware.Auth(jwtService),
 	)
 
 	server := &http.Server{

@@ -1,4 +1,13 @@
 definitions:
+  supermarket-backend_internal_dto.BranchResponse:
+    properties:
+      address:
+        type: string
+      branch_id:
+        type: string
+      branch_name:
+        type: string
+    type: object
   supermarket-backend_internal_dto.LoginRequest:
     properties:
       password:
@@ -16,20 +25,38 @@ definitions:
       user:
         $ref: '#/definitions/supermarket-backend_internal_dto.UserResponse'
     type: object
+  supermarket-backend_internal_dto.PositionResponse:
+    properties:
+      position_id:
+        type: string
+      position_name:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.RoleResponse:
+    properties:
+      created_at:
+        type: string
+      role_id:
+        type: string
+      role_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
   supermarket-backend_internal_dto.UserResponse:
     properties:
-      branch_id:
-        type: string
+      branch:
+        $ref: '#/definitions/supermarket-backend_internal_dto.BranchResponse'
       email:
         type: string
       full_name:
         type: string
       phone_number:
         type: string
-      position_id:
-        type: string
-      role_id:
-        type: string
+      position:
+        $ref: '#/definitions/supermarket-backend_internal_dto.PositionResponse'
+      role:
+        $ref: '#/definitions/supermarket-backend_internal_dto.RoleResponse'
       status:
         type: string
       user_id:
@@ -48,7 +75,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticate a user and return an access token
+      description: Authenticate a user and set the access token in an HttpOnly cookie
       parameters:
       - description: Login credentials
         in: body
@@ -76,10 +103,34 @@ paths:
       summary: User login
       tags:
       - Auth
+  /auth/me:
+    get:
+      description: Get information of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - CookieAuth: []
+      summary: Get current user
+      tags:
+      - Auth
 securityDefinitions:
-  BearerAuth:
-    description: Type "Bearer" followed by a space and JWT token.
-    in: header
-    name: Authorization
+  CookieAuth:
+    in: cookie
+    name: access_token
     type: apiKey
 swagger: "2.0"

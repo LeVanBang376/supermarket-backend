@@ -8,6 +8,7 @@ import (
 	"supermarket-backend/internal/dto"
 	userRepository "supermarket-backend/internal/repository/user"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -64,4 +65,20 @@ func (s *Service) Login(
 		AccessToken: accessToken,
 		User:        *dto.FromUserModelToResponse(user),
 	}, nil
+}
+
+func (s *Service) GetUserByID(
+	ctx context.Context,
+	userID uuid.UUID,
+) (*dto.UserResponse, error) {
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+
+		return nil, err
+	}
+
+	return dto.FromUserModelToResponse(user), nil
 }
