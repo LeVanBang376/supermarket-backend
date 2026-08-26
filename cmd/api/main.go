@@ -93,7 +93,7 @@ func main() {
 			AllowOrigins:     cfg.AllowedOrigins,
 			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-			AllowCredentials: false,
+			AllowCredentials: true,
 		}),
 	)
 
