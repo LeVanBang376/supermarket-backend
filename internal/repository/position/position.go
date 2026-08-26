@@ -1,4 +1,4 @@
-package role
+package position
 
 import (
 	"context"
@@ -21,33 +21,42 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (r *Repository) FindByID(
 	ctx context.Context,
-	roleID string,
-) (*model.Role, error) {
-	var role model.Role
+	positionID string,
+) (*model.Position, error) {
+	var position model.Position
 
 	err := r.db.
 		WithContext(ctx).
-		First(&role, "role_id = ?", roleID).
+		First(&position, "position_id = ?", positionID).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &role, nil
+	return &position, nil
 }
 
 func (r *Repository) FindAll(
 	ctx context.Context,
 	pagination *response.Pagination,
-) ([]*model.Role, error) {
-	var roles []*model.Role
+) ([]*model.Position, error) {
+	var positions []*model.Position
 
-	// Count total records
+	// Default pagination
+	if pagination.Page < 1 {
+		pagination.Page = 1
+	}
+
+	if pagination.PerPage < 1 {
+		pagination.PerPage = 10
+	}
+
+	// Count total
 	var total int64
 	if err := r.db.
 		WithContext(ctx).
-		Model(&model.Role{}).
+		Model(&model.Position{}).
 		Count(&total).
 		Error; err != nil {
 		return nil, err
@@ -56,25 +65,24 @@ func (r *Repository) FindAll(
 	pagination.Total = total
 
 	// Calculate total pages
-	if pagination.PerPage > 0 {
-		pagination.TotalPages = int(
-			(total + int64(pagination.PerPage) - 1) /
-				int64(pagination.PerPage),
-		)
-	}
+	pagination.TotalPages = int(
+		(total + int64(pagination.PerPage) - 1) /
+			int64(pagination.PerPage),
+	)
 
 	// Calculate offset
 	offset := (pagination.Page - 1) * pagination.PerPage
 
-	// Get paginated records
+	// Get positions
 	if err := r.db.
 		WithContext(ctx).
+		Order("position_id ASC").
 		Limit(pagination.PerPage).
 		Offset(offset).
-		Find(&roles).
+		Find(&positions).
 		Error; err != nil {
 		return nil, err
 	}
 
-	return roles, nil
+	return positions, nil
 }

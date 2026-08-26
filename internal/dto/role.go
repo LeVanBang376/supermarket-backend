@@ -5,20 +5,6 @@ import (
 	"time"
 )
 
-type CreateRoleRequest struct {
-	RoleName string `json:"role_name" binding:"required,max=30"`
-}
-
-func (r CreateRoleRequest) ToModel() *model.Role {
-	return &model.Role{
-		RoleName: r.RoleName,
-	}
-}
-
-type UpdateRoleRequest struct {
-	RoleName *string `json:"role_name" binding:"required,max=30"`
-}
-
 type RoleResponse struct {
 	RoleID    string    `json:"role_id"`
 	RoleName  string    `json:"role_name"`
