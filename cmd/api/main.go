@@ -17,9 +17,15 @@ import (
 	"supermarket-backend/internal/config"
 	"supermarket-backend/internal/handler"
 	"supermarket-backend/internal/middleware"
+	branchRepository "supermarket-backend/internal/repository/branch"
+	positionRepository "supermarket-backend/internal/repository/position"
+	roleRepository "supermarket-backend/internal/repository/role"
 	userRepository "supermarket-backend/internal/repository/user"
 	"supermarket-backend/internal/routes"
 	authService "supermarket-backend/internal/service/auth"
+	branchService "supermarket-backend/internal/service/branch"
+	positionService "supermarket-backend/internal/service/position"
+	roleService "supermarket-backend/internal/service/role"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -70,9 +76,13 @@ func main() {
 
 	// Infrastructure
 	jwtService := jwt.NewJWTService(cfg.JWTSecret)
+	authMiddleware := middleware.Auth(jwtService)
 
 	// Repositories
 	userRepo := userRepository.NewRepository(database)
+	branchRepo := branchRepository.NewRepository(database)
+	roleRepo := roleRepository.NewRepository(database)
+	positionRepo := positionRepository.NewRepository(database)
 
 	// Services
 	authSvc := authService.NewService(
@@ -80,8 +90,23 @@ func main() {
 		jwtService,
 	)
 
+	branchSvc := branchService.NewService(
+		branchRepo,
+	)
+
+	roleSvc := roleService.NewService(
+		roleRepo,
+	)
+
+	positionSvc := positionService.NewService(
+		positionRepo,
+	)
+
 	// Handlers
 	authHandler := handler.NewAuthHandler(authSvc)
+	branchHandler := handler.NewBranchHandler(branchSvc)
+	roleHandler := handler.NewRoleHandler(roleSvc)
+	positionHandler := handler.NewPositionHandler(positionSvc)
 
 	// Gin
 	router := gin.New()
@@ -114,7 +139,25 @@ func main() {
 	routes.RegisterAuthRoutes(
 		router,
 		authHandler,
-		middleware.Auth(jwtService),
+		authMiddleware,
+	)
+
+	routes.RegisterBranchRoutes(
+		router,
+		branchHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterRoleRoutes(
+		router,
+		roleHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterPositionRoutes(
+		router,
+		positionHandler,
+		authMiddleware,
 	)
 
 	server := &http.Server{

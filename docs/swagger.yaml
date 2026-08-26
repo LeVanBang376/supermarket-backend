@@ -1,4 +1,7 @@
 definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
   supermarket-backend_internal_dto.BranchResponse:
     properties:
       address:
@@ -7,6 +10,18 @@ definitions:
         type: string
       branch_name:
         type: string
+    type: object
+  supermarket-backend_internal_dto.CreateBranchRequest:
+    properties:
+      address:
+        maxLength: 150
+        type: string
+      branch_name:
+        maxLength: 100
+        type: string
+    required:
+    - address
+    - branch_name
     type: object
   supermarket-backend_internal_dto.LoginRequest:
     properties:
@@ -41,6 +56,15 @@ definitions:
       role_name:
         type: string
       updated_at:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.UpdateBranchRequest:
+    properties:
+      address:
+        maxLength: 150
+        type: string
+      branch_name:
+        maxLength: 100
         type: string
     type: object
   supermarket-backend_internal_dto.UserResponse:
@@ -128,6 +152,264 @@ paths:
       summary: Get current user
       tags:
       - Auth
+  /branches:
+    get:
+      description: Get all branches
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.BranchResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all branches
+      tags:
+      - branches
+    post:
+      consumes:
+      - application/json
+      description: Create a new branch
+      parameters:
+      - description: Create branch request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.CreateBranchRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.BranchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create branch
+      tags:
+      - branches
+  /branches/{branch_id}:
+    delete:
+      description: Delete a branch by its ID
+      parameters:
+      - description: Branch ID
+        in: path
+        name: branch_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete branch
+      tags:
+      - branches
+    get:
+      description: Get a branch by its ID
+      parameters:
+      - description: Branch ID
+        in: path
+        name: branch_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.BranchResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get branch by ID
+      tags:
+      - branches
+    put:
+      consumes:
+      - application/json
+      description: Update an existing branch
+      parameters:
+      - description: Branch ID
+        in: path
+        name: branch_id
+        required: true
+        type: string
+      - description: Update branch request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.UpdateBranchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.BranchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Update branch
+      tags:
+      - branches
+  /positions:
+    get:
+      description: Get all positions
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.PositionResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all positions
+      tags:
+      - positions
+  /positions/{position_id}:
+    get:
+      description: Get a position by its ID
+      parameters:
+      - description: Position ID
+        in: path
+        name: position_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.PositionResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get position by ID
+      tags:
+      - positions
+  /roles:
+    get:
+      description: Get all roles
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.RoleResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all roles
+      tags:
+      - roles
+  /roles/{role_id}:
+    get:
+      description: Get a role by its ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: role_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.RoleResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get role by ID
+      tags:
+      - roles
 securityDefinitions:
   CookieAuth:
     in: cookie

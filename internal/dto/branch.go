@@ -3,13 +3,13 @@ package dto
 import "supermarket-backend/internal/model"
 
 type CreateBranchRequest struct {
-	BranchName string `json:"branch_name" binding:"required"`
-	Address    string `json:"address" binding:"required"`
+	BranchName string `json:"branch_name" binding:"required,max=100"`
+	Address    string `json:"address" binding:"required,max=150"`
 }
 
 type UpdateBranchRequest struct {
-	BranchName *string `json:"branch_name"`
-	Address    *string `json:"address"`
+	BranchName *string `json:"branch_name" binding:"omitempty,max=100"`
+	Address    *string `json:"address" binding:"omitempty,max=150"`
 }
 
 type BranchResponse struct {
