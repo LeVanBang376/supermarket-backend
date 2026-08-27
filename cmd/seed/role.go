@@ -9,10 +9,6 @@ import (
 func seedRoles(db *gorm.DB) error {
 	roles := []model.Role{
 		{
-			RoleID:   model.RoleSuperAdmin,
-			RoleName: model.RoleSuperAdminName,
-		},
-		{
 			RoleID:   model.RoleAdmin,
 			RoleName: model.RoleAdminName,
 		},

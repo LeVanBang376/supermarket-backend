@@ -12,9 +12,14 @@ import (
 func seedBranches(db *gorm.DB) error {
 	branches := []model.Branch{
 		{
-			BranchID:   model.DefaultBranchID,
+			BranchID:   "BR0001",
 			BranchName: "Chi nhánh trung tâm",
 			Address:    "Hồ Chí Minh",
+		},
+		{
+			BranchID:   "BR0002",
+			BranchName: "Chi nhánh Quận 1",
+			Address:    "Quận 1, Hồ Chí Minh",
 		},
 	}
 

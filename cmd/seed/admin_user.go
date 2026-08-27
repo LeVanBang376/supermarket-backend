@@ -11,55 +11,55 @@ import (
 	"gorm.io/gorm"
 )
 
-func seedSuperAdmin(
+func seedAdmin(
 	db *gorm.DB,
 	cfg *config.Config,
 ) error {
 	var existingUser model.User
 
 	result := db.
-		Where("username = ?", cfg.SuperAdminUsername).
+		Where("username = ?", cfg.AdminUsername).
 		First(&existingUser)
 
-	// Super admin already exists.
+	// Admin already exists.
 	if result.Error == nil {
 		return nil
 	}
 
 	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return fmt.Errorf(
-			"check super admin: %w",
+			"check admin: %w",
 			result.Error,
 		)
 	}
 
 	// Hash password before storing it.
 	passwordHash, err := bcrypt.GenerateFromPassword(
-		[]byte(cfg.SuperAdminPassword),
+		[]byte(cfg.AdminPassword),
 		bcrypt.DefaultCost,
 	)
 	if err != nil {
 		return fmt.Errorf(
-			"hash super admin password: %w",
+			"hash admin password: %w",
 			err,
 		)
 	}
 
 	user := &model.User{
-		Username:     cfg.SuperAdminUsername,
+		Username:     cfg.AdminUsername,
 		PasswordHash: string(passwordHash),
-		Email:        cfg.SuperAdminEmail,
-		FullName:     cfg.SuperAdminFullName,
-		PhoneNumber:  cfg.SuperAdminPhone,
-		BranchID:     model.DefaultBranchID,
-		RoleID:       model.RoleSuperAdmin,
+		Email:        cfg.AdminEmail,
+		FullName:     cfg.AdminFullName,
+		PhoneNumber:  cfg.AdminPhone,
+		BranchID:     "BR0001",
+		RoleID:       model.RoleAdmin,
 		PositionID:   model.PositionAdmin,
 		Status:       model.UserStatusActive,
 	}
 
 	if err := db.Create(user).Error; err != nil {
 		return fmt.Errorf(
-			"create super admin: %w",
+			"create admin: %w",
 			err,
 		)
 	}

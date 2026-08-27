@@ -33,7 +33,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := seedSuperAdmin(database, cfg); err != nil {
+	if err := seedUnits(database); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := seedBrands(database); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := seedSKUs(database); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := seedStocks(database); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := seedAdmin(database, cfg); err != nil {
 		log.Fatal(err)
 	}
 

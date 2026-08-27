@@ -3,19 +3,17 @@ package model
 import "time"
 
 const (
-	RoleSuperAdmin = "SUPER_ADMIN"
-	RoleAdmin      = "ADMIN"
-	RoleManager    = "MANAGER"
-	RoleEmployee   = "EMPLOYEE"
-	RoleHR         = "HR"
+	RoleAdmin    = "ADMIN"
+	RoleManager  = "MANAGER"
+	RoleEmployee = "EMPLOYEE"
+	RoleHR       = "HR"
 )
 
 const (
-	RoleSuperAdminName = "Super Admin"
-	RoleAdminName      = "Admin"
-	RoleManagerName    = "Manager"
-	RoleEmployeeName   = "Employee"
-	RoleHRName         = "HR"
+	RoleAdminName    = "Admin"
+	RoleManagerName  = "Manager"
+	RoleEmployeeName = "Employee"
+	RoleHRName       = "HR"
 )
 
 type Role struct {
