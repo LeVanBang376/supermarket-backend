@@ -18,14 +18,22 @@ import (
 	"supermarket-backend/internal/handler"
 	"supermarket-backend/internal/middleware"
 	branchRepository "supermarket-backend/internal/repository/branch"
+	brandRepository "supermarket-backend/internal/repository/brand"
 	positionRepository "supermarket-backend/internal/repository/position"
 	roleRepository "supermarket-backend/internal/repository/role"
+	skuRepository "supermarket-backend/internal/repository/sku"
+	stockRepository "supermarket-backend/internal/repository/stock"
+	unitRepository "supermarket-backend/internal/repository/unit"
 	userRepository "supermarket-backend/internal/repository/user"
 	"supermarket-backend/internal/routes"
 	authService "supermarket-backend/internal/service/auth"
 	branchService "supermarket-backend/internal/service/branch"
+	brandService "supermarket-backend/internal/service/brand"
 	positionService "supermarket-backend/internal/service/position"
 	roleService "supermarket-backend/internal/service/role"
+	skuService "supermarket-backend/internal/service/sku"
+	stockService "supermarket-backend/internal/service/stock"
+	unitService "supermarket-backend/internal/service/unit"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -81,6 +89,10 @@ func main() {
 	// Repositories
 	userRepo := userRepository.NewRepository(database)
 	branchRepo := branchRepository.NewRepository(database)
+	brandRepo := brandRepository.NewRepository(database)
+	unitRepo := unitRepository.NewRepository(database)
+	skuRepo := skuRepository.NewRepository(database)
+	stockRepo := stockRepository.NewRepository(database)
 	roleRepo := roleRepository.NewRepository(database)
 	positionRepo := positionRepository.NewRepository(database)
 
@@ -94,6 +106,22 @@ func main() {
 		branchRepo,
 	)
 
+	brandSvc := brandService.NewService(
+		brandRepo,
+	)
+
+	unitSvc := unitService.NewService(
+		unitRepo,
+	)
+
+	skuSvc := skuService.NewService(
+		skuRepo,
+	)
+
+	stockSvc := stockService.NewService(
+		stockRepo,
+	)
+
 	roleSvc := roleService.NewService(
 		roleRepo,
 	)
@@ -105,6 +133,10 @@ func main() {
 	// Handlers
 	authHandler := handler.NewAuthHandler(authSvc)
 	branchHandler := handler.NewBranchHandler(branchSvc)
+	brandHandler := handler.NewBrandHandler(brandSvc)
+	unitHandler := handler.NewUnitHandler(unitSvc)
+	skuHandler := handler.NewSKUHandler(skuSvc)
+	stockHandler := handler.NewStockHandler(stockSvc)
 	roleHandler := handler.NewRoleHandler(roleSvc)
 	positionHandler := handler.NewPositionHandler(positionSvc)
 
@@ -145,6 +177,30 @@ func main() {
 	routes.RegisterBranchRoutes(
 		router,
 		branchHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterBrandRoutes(
+		router,
+		brandHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterUnitRoutes(
+		router,
+		unitHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterSKURoutes(
+		router,
+		skuHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterStockRoutes(
+		router,
+		stockHandler,
 		authMiddleware,
 	)
 

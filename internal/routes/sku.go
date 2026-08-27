@@ -8,33 +8,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterBranchRoutes(
+func RegisterSKURoutes(
 	router *gin.Engine,
-	branchHandler *handler.BranchHandler,
+	skuHandler *handler.SKUHandler,
 	authMiddleware gin.HandlerFunc,
 ) {
-	branches := router.Group("/branches")
-	branches.Use(authMiddleware)
+	skus := router.Group("/skus")
+	skus.Use(authMiddleware)
 	{
-		branches.POST(
+		skus.POST(
 			"",
 			middleware.RequireRole(model.RoleAdmin),
-			branchHandler.Create,
+			skuHandler.Create,
 		)
 
-		branches.GET("", branchHandler.FindAll)
-		branches.GET("/:branch_id", branchHandler.FindByID)
+		skus.GET("", skuHandler.FindAll)
+		skus.GET("/:sku_barcode", skuHandler.FindByID)
 
-		branches.PUT(
-			"/:branch_id",
+		skus.PUT(
+			"/:sku_barcode",
 			middleware.RequireRole(model.RoleAdmin),
-			branchHandler.Update,
+			skuHandler.Update,
 		)
 
-		branches.DELETE(
-			"/:branch_id",
+		skus.DELETE(
+			"/:sku_barcode",
 			middleware.RequireRole(model.RoleAdmin),
-			branchHandler.Delete,
+			skuHandler.Delete,
 		)
 	}
 }

@@ -11,6 +11,13 @@ definitions:
       branch_name:
         type: string
     type: object
+  supermarket-backend_internal_dto.BrandResponse:
+    properties:
+      brand_id:
+        type: string
+      brand_name:
+        type: string
+    type: object
   supermarket-backend_internal_dto.CreateBranchRequest:
     properties:
       address:
@@ -22,6 +29,46 @@ definitions:
     required:
     - address
     - branch_name
+    type: object
+  supermarket-backend_internal_dto.CreateBrandRequest:
+    properties:
+      brand_name:
+        maxLength: 30
+        type: string
+    required:
+    - brand_name
+    type: object
+  supermarket-backend_internal_dto.CreateSKURequest:
+    properties:
+      brand_id:
+        maxLength: 5
+        type: string
+      shelf_life_days:
+        minimum: 0
+        type: integer
+      sku_barcode:
+        maxLength: 30
+        type: string
+      sku_name:
+        maxLength: 50
+        type: string
+      unit_id:
+        maxLength: 5
+        type: string
+    required:
+    - brand_id
+    - shelf_life_days
+    - sku_barcode
+    - sku_name
+    - unit_id
+    type: object
+  supermarket-backend_internal_dto.CreateUnitRequest:
+    properties:
+      unit_name:
+        maxLength: 30
+        type: string
+    required:
+    - unit_name
     type: object
   supermarket-backend_internal_dto.LoginRequest:
     properties:
@@ -58,6 +105,35 @@ definitions:
       updated_at:
         type: string
     type: object
+  supermarket-backend_internal_dto.SKUResponse:
+    properties:
+      brand_id:
+        type: string
+      shelf_life_days:
+        type: integer
+      sku_barcode:
+        type: string
+      sku_name:
+        type: string
+      unit_id:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.StockResponse:
+    properties:
+      branch_id:
+        type: string
+      quantity:
+        type: integer
+      sku_barcode:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.UnitResponse:
+    properties:
+      unit_id:
+        type: string
+      unit_name:
+        type: string
+    type: object
   supermarket-backend_internal_dto.UpdateBranchRequest:
     properties:
       address:
@@ -65,6 +141,33 @@ definitions:
         type: string
       branch_name:
         maxLength: 100
+        type: string
+    type: object
+  supermarket-backend_internal_dto.UpdateBrandRequest:
+    properties:
+      brand_name:
+        maxLength: 30
+        type: string
+    type: object
+  supermarket-backend_internal_dto.UpdateSKURequest:
+    properties:
+      brand_id:
+        maxLength: 5
+        type: string
+      shelf_life_days:
+        minimum: 0
+        type: integer
+      sku_name:
+        maxLength: 50
+        type: string
+      unit_id:
+        maxLength: 5
+        type: string
+    type: object
+  supermarket-backend_internal_dto.UpdateUnitRequest:
+    properties:
+      unit_name:
+        maxLength: 30
         type: string
     type: object
   supermarket-backend_internal_dto.UserResponse:
@@ -296,6 +399,150 @@ paths:
       summary: Update branch
       tags:
       - branches
+  /brands:
+    get:
+      description: Get all brands
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.BrandResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all brands
+      tags:
+      - brands
+    post:
+      consumes:
+      - application/json
+      description: Create a new brand
+      parameters:
+      - description: Create brand request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.CreateBrandRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.BrandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create brand
+      tags:
+      - brands
+  /brands/{brand_id}:
+    delete:
+      description: Delete a brand by its ID
+      parameters:
+      - description: Brand ID
+        in: path
+        name: brand_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete brand
+      tags:
+      - brands
+    get:
+      description: Get a brand by its ID
+      parameters:
+      - description: Brand ID
+        in: path
+        name: brand_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.BrandResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get brand by ID
+      tags:
+      - brands
+    put:
+      consumes:
+      - application/json
+      description: Update an existing brand
+      parameters:
+      - description: Brand ID
+        in: path
+        name: brand_id
+        required: true
+        type: string
+      - description: Update brand request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.UpdateBrandRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.BrandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Update brand
+      tags:
+      - brands
   /positions:
     get:
       description: Get all positions
@@ -410,6 +657,324 @@ paths:
       summary: Get role by ID
       tags:
       - roles
+  /skus:
+    get:
+      description: Get all SKUs
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.SKUResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all SKUs
+      tags:
+      - skus
+    post:
+      consumes:
+      - application/json
+      description: Create a new SKU
+      parameters:
+      - description: Create SKU request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.CreateSKURequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.SKUResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create SKU
+      tags:
+      - skus
+  /skus/{sku_barcode}:
+    delete:
+      description: Delete an SKU by its barcode
+      parameters:
+      - description: SKU barcode
+        in: path
+        name: sku_barcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete SKU
+      tags:
+      - skus
+    get:
+      description: Get an SKU by its barcode
+      parameters:
+      - description: SKU barcode
+        in: path
+        name: sku_barcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.SKUResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get SKU by barcode
+      tags:
+      - skus
+    put:
+      consumes:
+      - application/json
+      description: Update an existing SKU
+      parameters:
+      - description: SKU barcode
+        in: path
+        name: sku_barcode
+        required: true
+        type: string
+      - description: Update SKU request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.UpdateSKURequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.SKUResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Update SKU
+      tags:
+      - skus
+  /stocks:
+    get:
+      description: Get all stocks
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.StockResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all stocks
+      tags:
+      - stocks
+  /units:
+    get:
+      description: Get all units
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.UnitResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all units
+      tags:
+      - units
+    post:
+      consumes:
+      - application/json
+      description: Create a new unit
+      parameters:
+      - description: Create unit request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.CreateUnitRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.UnitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create unit
+      tags:
+      - units
+  /units/{unit_id}:
+    delete:
+      description: Delete a unit by its ID
+      parameters:
+      - description: Unit ID
+        in: path
+        name: unit_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete unit
+      tags:
+      - units
+    get:
+      description: Get a unit by its ID
+      parameters:
+      - description: Unit ID
+        in: path
+        name: unit_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.UnitResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get unit by ID
+      tags:
+      - units
+    put:
+      consumes:
+      - application/json
+      description: Update an existing unit
+      parameters:
+      - description: Unit ID
+        in: path
+        name: unit_id
+        required: true
+        type: string
+      - description: Update unit request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.UpdateUnitRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.UnitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Update unit
+      tags:
+      - units
 securityDefinitions:
   CookieAuth:
     in: cookie

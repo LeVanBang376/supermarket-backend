@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RequireRole(roleID string) gin.HandlerFunc {
+func RequireRole(roleIDs ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims := GetClaims(c)
 
@@ -22,16 +22,18 @@ func RequireRole(roleID string) gin.HandlerFunc {
 			return
 		}
 
-		if claims.RoleID != roleID {
-			response.NonDataJSON(
-				c.Writer,
-				http.StatusForbidden,
-				"You don't have permission to access this resource",
-			)
-			c.Abort()
-			return
+		for _, roleID := range roleIDs {
+			if claims.RoleID == roleID {
+				c.Next()
+				return
+			}
 		}
 
-		c.Next()
+		response.NonDataJSON(
+			c.Writer,
+			http.StatusForbidden,
+			"You don't have permission to access this resource",
+		)
+		c.Abort()
 	}
 }
