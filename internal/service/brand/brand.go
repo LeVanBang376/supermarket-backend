@@ -7,14 +7,21 @@ import (
 	"supermarket-backend/internal/model"
 	"supermarket-backend/internal/repository/brand"
 	"supermarket-backend/internal/response"
+
+	"gorm.io/gorm"
 )
 
 type Service struct {
+	db         *gorm.DB
 	repository *brand.Repository
 }
 
-func NewService(repository *brand.Repository) *Service {
+func NewService(
+	db *gorm.DB,
+	repository *brand.Repository,
+) *Service {
 	return &Service{
+		db:         db,
 		repository: repository,
 	}
 }
@@ -23,17 +30,26 @@ func (s *Service) Create(
 	ctx context.Context,
 	req *dto.CreateBrandRequest,
 ) (*dto.BrandResponse, error) {
-	brandID, err := s.repository.GetNextBrandID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	var brand *model.Brand
 
-	brand := &model.Brand{
-		BrandID:   brandID,
-		BrandName: req.BrandName,
-	}
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		brandID, err := s.repository.GetNextBrandID(ctx, tx)
+		if err != nil {
+			return err
+		}
 
-	err = s.repository.Create(ctx, brand)
+		brand = &model.Brand{
+			BrandID:   brandID,
+			BrandName: req.BrandName,
+		}
+
+		if err := s.repository.Create(ctx, tx, brand); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +61,11 @@ func (s *Service) FindByID(
 	ctx context.Context,
 	brandID string,
 ) (*dto.BrandResponse, error) {
-	brand, err := s.repository.FindByID(ctx, brandID)
+	brand, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		brandID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -57,12 +77,20 @@ func (s *Service) FindAll(
 	ctx context.Context,
 	pagination *response.Pagination,
 ) ([]*dto.BrandResponse, error) {
-	brands, err := s.repository.FindAll(ctx, pagination)
+	brands, err := s.repository.FindAll(
+		ctx,
+		s.db,
+		pagination,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	responses := make([]*dto.BrandResponse, 0, len(brands))
+	responses := make(
+		[]*dto.BrandResponse,
+		0,
+		len(brands),
+	)
 
 	for _, brand := range brands {
 		responses = append(
@@ -79,7 +107,11 @@ func (s *Service) Update(
 	brandID string,
 	req *dto.UpdateBrandRequest,
 ) (*dto.BrandResponse, error) {
-	brand, err := s.repository.FindByID(ctx, brandID)
+	brand, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		brandID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +120,11 @@ func (s *Service) Update(
 		brand.BrandName = *req.BrandName
 	}
 
-	err = s.repository.Update(ctx, brand)
+	err = s.repository.Update(
+		ctx,
+		s.db,
+		brand,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -100,10 +136,18 @@ func (s *Service) Delete(
 	ctx context.Context,
 	brandID string,
 ) error {
-	_, err := s.repository.FindByID(ctx, brandID)
+	_, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		brandID,
+	)
 	if err != nil {
 		return err
 	}
 
-	return s.repository.Delete(ctx, brandID)
+	return s.repository.Delete(
+		ctx,
+		s.db,
+		brandID,
+	)
 }

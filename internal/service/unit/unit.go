@@ -7,14 +7,21 @@ import (
 	"supermarket-backend/internal/model"
 	"supermarket-backend/internal/repository/unit"
 	"supermarket-backend/internal/response"
+
+	"gorm.io/gorm"
 )
 
 type Service struct {
+	db         *gorm.DB
 	repository *unit.Repository
 }
 
-func NewService(repository *unit.Repository) *Service {
+func NewService(
+	db *gorm.DB,
+	repository *unit.Repository,
+) *Service {
 	return &Service{
+		db:         db,
 		repository: repository,
 	}
 }
@@ -23,17 +30,33 @@ func (s *Service) Create(
 	ctx context.Context,
 	req *dto.CreateUnitRequest,
 ) (*dto.UnitResponse, error) {
-	unitID, err := s.repository.GetNextUnitID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	var unit *model.Unit
 
-	unit := &model.Unit{
-		UnitID:   unitID,
-		UnitName: req.UnitName,
-	}
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		unitID, err := s.repository.GetNextUnitID(
+			ctx,
+			tx,
+		)
+		if err != nil {
+			return err
+		}
 
-	err = s.repository.Create(ctx, unit)
+		unit = &model.Unit{
+			UnitID:   unitID,
+			UnitName: req.UnitName,
+		}
+
+		if err := s.repository.Create(
+			ctx,
+			tx,
+			unit,
+		); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +68,11 @@ func (s *Service) FindByID(
 	ctx context.Context,
 	unitID string,
 ) (*dto.UnitResponse, error) {
-	unit, err := s.repository.FindByID(ctx, unitID)
+	unit, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		unitID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -57,12 +84,20 @@ func (s *Service) FindAll(
 	ctx context.Context,
 	pagination *response.Pagination,
 ) ([]*dto.UnitResponse, error) {
-	units, err := s.repository.FindAll(ctx, pagination)
+	units, err := s.repository.FindAll(
+		ctx,
+		s.db,
+		pagination,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	responses := make([]*dto.UnitResponse, 0, len(units))
+	responses := make(
+		[]*dto.UnitResponse,
+		0,
+		len(units),
+	)
 
 	for _, unit := range units {
 		responses = append(
@@ -79,7 +114,11 @@ func (s *Service) Update(
 	unitID string,
 	req *dto.UpdateUnitRequest,
 ) (*dto.UnitResponse, error) {
-	unit, err := s.repository.FindByID(ctx, unitID)
+	unit, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		unitID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +127,11 @@ func (s *Service) Update(
 		unit.UnitName = *req.UnitName
 	}
 
-	err = s.repository.Update(ctx, unit)
+	err = s.repository.Update(
+		ctx,
+		s.db,
+		unit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -100,10 +143,18 @@ func (s *Service) Delete(
 	ctx context.Context,
 	unitID string,
 ) error {
-	_, err := s.repository.FindByID(ctx, unitID)
+	_, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		unitID,
+	)
 	if err != nil {
 		return err
 	}
 
-	return s.repository.Delete(ctx, unitID)
+	return s.repository.Delete(
+		ctx,
+		s.db,
+		unitID,
+	)
 }

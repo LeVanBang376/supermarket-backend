@@ -7,14 +7,21 @@ import (
 	"supermarket-backend/internal/model"
 	skuRepository "supermarket-backend/internal/repository/sku"
 	"supermarket-backend/internal/response"
+
+	"gorm.io/gorm"
 )
 
 type Service struct {
+	db         *gorm.DB
 	repository *skuRepository.Repository
 }
 
-func NewService(repository *skuRepository.Repository) *Service {
+func NewService(
+	db *gorm.DB,
+	repository *skuRepository.Repository,
+) *Service {
 	return &Service{
+		db:         db,
 		repository: repository,
 	}
 }
@@ -31,7 +38,11 @@ func (s *Service) Create(
 		ShelfLifeDays: req.ShelfLifeDays,
 	}
 
-	err := s.repository.Create(ctx, sku)
+	err := s.repository.Create(
+		ctx,
+		s.db,
+		sku,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +54,11 @@ func (s *Service) FindByID(
 	ctx context.Context,
 	skuBarcode string,
 ) (*dto.SKUResponse, error) {
-	sku, err := s.repository.FindByID(ctx, skuBarcode)
+	sku, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		skuBarcode,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -55,12 +70,20 @@ func (s *Service) FindAll(
 	ctx context.Context,
 	pagination *response.Pagination,
 ) ([]*dto.SKUResponse, error) {
-	skus, err := s.repository.FindAll(ctx, pagination)
+	skus, err := s.repository.FindAll(
+		ctx,
+		s.db,
+		pagination,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	responses := make([]*dto.SKUResponse, 0, len(skus))
+	responses := make(
+		[]*dto.SKUResponse,
+		0,
+		len(skus),
+	)
 
 	for _, sku := range skus {
 		responses = append(
@@ -77,7 +100,11 @@ func (s *Service) Update(
 	skuBarcode string,
 	req *dto.UpdateSKURequest,
 ) (*dto.SKUResponse, error) {
-	sku, err := s.repository.FindByID(ctx, skuBarcode)
+	sku, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		skuBarcode,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +125,11 @@ func (s *Service) Update(
 		sku.ShelfLifeDays = *req.ShelfLifeDays
 	}
 
-	err = s.repository.Update(ctx, sku)
+	err = s.repository.Update(
+		ctx,
+		s.db,
+		sku,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -110,10 +141,18 @@ func (s *Service) Delete(
 	ctx context.Context,
 	skuBarcode string,
 ) error {
-	_, err := s.repository.FindByID(ctx, skuBarcode)
+	_, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		skuBarcode,
+	)
 	if err != nil {
 		return err
 	}
 
-	return s.repository.Delete(ctx, skuBarcode)
+	return s.repository.Delete(
+		ctx,
+		s.db,
+		skuBarcode,
+	)
 }

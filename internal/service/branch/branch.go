@@ -7,14 +7,18 @@ import (
 	"supermarket-backend/internal/model"
 	"supermarket-backend/internal/repository/branch"
 	"supermarket-backend/internal/response"
+
+	"gorm.io/gorm"
 )
 
 type Service struct {
+	db         *gorm.DB
 	repository *branch.Repository
 }
 
-func NewService(repository *branch.Repository) *Service {
+func NewService(db *gorm.DB, repository *branch.Repository) *Service {
 	return &Service{
+		db:         db,
 		repository: repository,
 	}
 }
@@ -23,18 +27,27 @@ func (s *Service) Create(
 	ctx context.Context,
 	req *dto.CreateBranchRequest,
 ) (*dto.BranchResponse, error) {
-	branchID, err := s.repository.GetNextBranchID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	var branch *model.Branch
 
-	branch := &model.Branch{
-		BranchID:   branchID,
-		BranchName: req.BranchName,
-		Address:    req.Address,
-	}
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		branchID, err := s.repository.GetNextBranchID(ctx, tx)
+		if err != nil {
+			return err
+		}
 
-	err = s.repository.Create(ctx, branch)
+		branch = &model.Branch{
+			BranchID:   branchID,
+			BranchName: req.BranchName,
+			Address:    req.Address,
+		}
+
+		if err := s.repository.Create(ctx, tx, branch); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +59,7 @@ func (s *Service) FindByID(
 	ctx context.Context,
 	branchID string,
 ) (*dto.BranchResponse, error) {
-	branch, err := s.repository.FindByID(ctx, branchID)
+	branch, err := s.repository.FindByID(ctx, s.db, branchID)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +71,7 @@ func (s *Service) FindAll(
 	ctx context.Context,
 	pagination *response.Pagination,
 ) ([]*dto.BranchResponse, error) {
-	branches, err := s.repository.FindAll(ctx, pagination)
+	branches, err := s.repository.FindAll(ctx, s.db, pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +93,7 @@ func (s *Service) Update(
 	branchID string,
 	req *dto.UpdateBranchRequest,
 ) (*dto.BranchResponse, error) {
-	branch, err := s.repository.FindByID(ctx, branchID)
+	branch, err := s.repository.FindByID(ctx, s.db, branchID)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +106,7 @@ func (s *Service) Update(
 		branch.Address = *req.Address
 	}
 
-	err = s.repository.Update(ctx, branch)
+	err = s.repository.Update(ctx, s.db, branch)
 	if err != nil {
 		return nil, err
 	}
@@ -105,10 +118,10 @@ func (s *Service) Delete(
 	ctx context.Context,
 	branchID string,
 ) error {
-	_, err := s.repository.FindByID(ctx, branchID)
+	_, err := s.repository.FindByID(ctx, s.db, branchID)
 	if err != nil {
 		return err
 	}
 
-	return s.repository.Delete(ctx, branchID)
+	return s.repository.Delete(ctx, s.db, branchID)
 }

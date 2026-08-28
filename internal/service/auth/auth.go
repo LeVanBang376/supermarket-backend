@@ -14,15 +14,18 @@ import (
 )
 
 type Service struct {
+	db         *gorm.DB
 	userRepo   *userRepository.Repository
 	jwtService *jwt.JWTService
 }
 
 func NewService(
+	db *gorm.DB,
 	userRepo *userRepository.Repository,
 	jwtService *jwt.JWTService,
 ) *Service {
 	return &Service{
+		db:         db,
 		userRepo:   userRepo,
 		jwtService: jwtService,
 	}
@@ -32,7 +35,11 @@ func (s *Service) Login(
 	ctx context.Context,
 	req dto.LoginRequest,
 ) (*dto.LoginResponse, error) {
-	user, err := s.userRepo.FindByUsername(ctx, req.Username)
+	user, err := s.userRepo.FindByUsername(
+		ctx,
+		s.db,
+		req.Username,
+	)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("invalid username or password")
@@ -71,7 +78,11 @@ func (s *Service) GetUserByID(
 	ctx context.Context,
 	userID uuid.UUID,
 ) (*dto.UserResponse, error) {
-	user, err := s.userRepo.FindByID(ctx, userID)
+	user, err := s.userRepo.FindByID(
+		ctx,
+		s.db,
+		userID,
+	)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")

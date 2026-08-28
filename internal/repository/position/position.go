@@ -9,23 +9,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository struct {
-	db *gorm.DB
-}
+type Repository struct{}
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{
-		db: db,
-	}
+func NewRepository() *Repository {
+	return &Repository{}
 }
 
 func (r *Repository) FindByID(
 	ctx context.Context,
+	db *gorm.DB,
 	positionID string,
 ) (*model.Position, error) {
 	var position model.Position
 
-	err := r.db.
+	err := db.
 		WithContext(ctx).
 		First(&position, "position_id = ?", positionID).
 		Error
@@ -39,6 +36,7 @@ func (r *Repository) FindByID(
 
 func (r *Repository) FindAll(
 	ctx context.Context,
+	db *gorm.DB,
 	pagination *response.Pagination,
 ) ([]*model.Position, error) {
 	var positions []*model.Position
@@ -54,7 +52,8 @@ func (r *Repository) FindAll(
 
 	// Count total
 	var total int64
-	if err := r.db.
+
+	if err := db.
 		WithContext(ctx).
 		Model(&model.Position{}).
 		Count(&total).
@@ -74,7 +73,7 @@ func (r *Repository) FindAll(
 	offset := (pagination.Page - 1) * pagination.PerPage
 
 	// Get positions
-	if err := r.db.
+	if err := db.
 		WithContext(ctx).
 		Order("position_id ASC").
 		Limit(pagination.PerPage).

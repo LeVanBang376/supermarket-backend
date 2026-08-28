@@ -1,3 +1,5 @@
+package main
+
 // @title SmallSupermarket APIs
 // @version 1.0
 // @description SmallSupermarket APIs
@@ -5,7 +7,6 @@
 // @securityDefinitions.apikey CookieAuth
 // @in cookie
 // @name access_token
-package main
 
 import (
 	"context"
@@ -87,46 +88,54 @@ func main() {
 	authMiddleware := middleware.Auth(jwtService)
 
 	// Repositories
-	userRepo := userRepository.NewRepository(database)
-	branchRepo := branchRepository.NewRepository(database)
-	brandRepo := brandRepository.NewRepository(database)
-	unitRepo := unitRepository.NewRepository(database)
-	skuRepo := skuRepository.NewRepository(database)
-	stockRepo := stockRepository.NewRepository(database)
-	roleRepo := roleRepository.NewRepository(database)
-	positionRepo := positionRepository.NewRepository(database)
+	userRepo := userRepository.NewRepository()
+	branchRepo := branchRepository.NewRepository()
+	brandRepo := brandRepository.NewRepository()
+	unitRepo := unitRepository.NewRepository()
+	skuRepo := skuRepository.NewRepository()
+	stockRepo := stockRepository.NewRepository()
+	roleRepo := roleRepository.NewRepository()
+	positionRepo := positionRepository.NewRepository()
 
 	// Services
 	authSvc := authService.NewService(
+		database,
 		userRepo,
 		jwtService,
 	)
 
 	branchSvc := branchService.NewService(
+		database,
 		branchRepo,
 	)
 
 	brandSvc := brandService.NewService(
+		database,
 		brandRepo,
 	)
 
 	unitSvc := unitService.NewService(
+		database,
 		unitRepo,
 	)
 
 	skuSvc := skuService.NewService(
+		database,
 		skuRepo,
 	)
 
 	stockSvc := stockService.NewService(
+		database,
 		stockRepo,
 	)
 
 	roleSvc := roleService.NewService(
+		database,
 		roleRepo,
 	)
 
 	positionSvc := positionService.NewService(
+		database,
 		positionRepo,
 	)
 
@@ -157,15 +166,24 @@ func main() {
 	// Readiness endpoint
 	router.GET("/healthz", func(c *gin.Context) {
 		if isShuttingDown.Load() {
-			c.String(http.StatusServiceUnavailable, "Shutting down")
+			c.String(
+				http.StatusServiceUnavailable,
+				"Shutting down",
+			)
 			return
 		}
 
-		c.String(http.StatusOK, "OK")
+		c.String(
+			http.StatusOK,
+			"OK",
+		)
 	})
 
 	// Swagger
-	router.GET("/swagger/*any", gin.WrapH(httpSwagger.WrapHandler))
+	router.GET(
+		"/swagger/*any",
+		gin.WrapH(httpSwagger.WrapHandler),
+	)
 
 	// Routes
 	routes.RegisterAuthRoutes(
@@ -237,7 +255,9 @@ func main() {
 
 	isShuttingDown.Store(true)
 
-	log.Println("Received shutdown signal, shutting down.")
+	log.Println(
+		"Received shutdown signal, shutting down.",
+	)
 
 	// Give time for readiness check to propagate
 	time.Sleep(_readinessDrainDelay)
