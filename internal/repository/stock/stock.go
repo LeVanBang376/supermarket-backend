@@ -12,24 +12,21 @@ import (
 
 var ErrInsufficientStock = errors.New("insufficient stock")
 
-type Repository struct {
-	db *gorm.DB
-}
+type Repository struct{}
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{
-		db: db,
-	}
+func NewRepository() *Repository {
+	return &Repository{}
 }
 
 func (r *Repository) FindByBranchAndSKU(
 	ctx context.Context,
+	db *gorm.DB,
 	branchID string,
 	skuBarcode string,
 ) (*model.Stock, error) {
 	var stock model.Stock
 
-	err := r.db.
+	err := db.
 		WithContext(ctx).
 		First(
 			&stock,
@@ -48,12 +45,14 @@ func (r *Repository) FindByBranchAndSKU(
 
 func (r *Repository) FindAll(
 	ctx context.Context,
+	db *gorm.DB,
 	pagination *response.Pagination,
 ) ([]*model.Stock, error) {
 	var stocks []*model.Stock
 
 	var total int64
-	if err := r.db.
+
+	if err := db.
 		WithContext(ctx).
 		Model(&model.Stock{}).
 		Count(&total).
@@ -70,7 +69,7 @@ func (r *Repository) FindAll(
 
 	offset := (pagination.Page - 1) * pagination.PerPage
 
-	if err := r.db.
+	if err := db.
 		WithContext(ctx).
 		Limit(pagination.PerPage).
 		Offset(offset).
@@ -84,11 +83,12 @@ func (r *Repository) FindAll(
 
 func (r *Repository) IncreaseQuantity(
 	ctx context.Context,
+	db *gorm.DB,
 	branchID string,
 	skuBarcode string,
 	quantity int,
 ) error {
-	return r.db.
+	return db.
 		WithContext(ctx).
 		Model(&model.Stock{}).
 		Where(
@@ -105,11 +105,12 @@ func (r *Repository) IncreaseQuantity(
 
 func (r *Repository) DecreaseQuantity(
 	ctx context.Context,
+	db *gorm.DB,
 	branchID string,
 	skuBarcode string,
 	quantity int,
 ) error {
-	result := r.db.
+	result := db.
 		WithContext(ctx).
 		Model(&model.Stock{}).
 		Where(
@@ -136,11 +137,12 @@ func (r *Repository) DecreaseQuantity(
 
 func (r *Repository) SetQuantity(
 	ctx context.Context,
+	db *gorm.DB,
 	branchID string,
 	skuBarcode string,
 	quantity int,
 ) error {
-	return r.db.
+	return db.
 		WithContext(ctx).
 		Model(&model.Stock{}).
 		Where(

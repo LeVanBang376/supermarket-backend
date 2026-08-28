@@ -9,23 +9,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository struct {
-	db *gorm.DB
-}
+type Repository struct{}
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{
-		db: db,
-	}
+func NewRepository() *Repository {
+	return &Repository{}
 }
 
 func (r *Repository) FindByID(
 	ctx context.Context,
+	db *gorm.DB,
 	roleID string,
 ) (*model.Role, error) {
 	var role model.Role
 
-	err := r.db.
+	err := db.
 		WithContext(ctx).
 		First(&role, "role_id = ?", roleID).
 		Error
@@ -39,13 +36,15 @@ func (r *Repository) FindByID(
 
 func (r *Repository) FindAll(
 	ctx context.Context,
+	db *gorm.DB,
 	pagination *response.Pagination,
 ) ([]*model.Role, error) {
 	var roles []*model.Role
 
 	// Count total records
 	var total int64
-	if err := r.db.
+
+	if err := db.
 		WithContext(ctx).
 		Model(&model.Role{}).
 		Count(&total).
@@ -67,7 +66,7 @@ func (r *Repository) FindAll(
 	offset := (pagination.Page - 1) * pagination.PerPage
 
 	// Get paginated records
-	if err := r.db.
+	if err := db.
 		WithContext(ctx).
 		Limit(pagination.PerPage).
 		Offset(offset).

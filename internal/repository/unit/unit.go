@@ -10,21 +10,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository struct {
-	db *gorm.DB
-}
+type Repository struct{}
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{
-		db: db,
-	}
+func NewRepository() *Repository {
+	return &Repository{}
 }
 
 func (r *Repository) Create(
 	ctx context.Context,
+	db *gorm.DB,
 	unit *model.Unit,
 ) error {
-	return r.db.
+	return db.
 		WithContext(ctx).
 		Create(unit).
 		Error
@@ -32,11 +29,12 @@ func (r *Repository) Create(
 
 func (r *Repository) FindByID(
 	ctx context.Context,
+	db *gorm.DB,
 	unitID string,
 ) (*model.Unit, error) {
 	var unit model.Unit
 
-	err := r.db.
+	err := db.
 		WithContext(ctx).
 		First(&unit, "unit_id = ?", unitID).
 		Error
@@ -50,12 +48,14 @@ func (r *Repository) FindByID(
 
 func (r *Repository) FindAll(
 	ctx context.Context,
+	db *gorm.DB,
 	pagination *response.Pagination,
 ) ([]*model.Unit, error) {
 	var units []*model.Unit
 
 	var total int64
-	if err := r.db.
+
+	if err := db.
 		WithContext(ctx).
 		Model(&model.Unit{}).
 		Count(&total).
@@ -72,7 +72,7 @@ func (r *Repository) FindAll(
 
 	offset := (pagination.Page - 1) * pagination.PerPage
 
-	if err := r.db.
+	if err := db.
 		WithContext(ctx).
 		Limit(pagination.PerPage).
 		Offset(offset).
@@ -86,9 +86,10 @@ func (r *Repository) FindAll(
 
 func (r *Repository) Update(
 	ctx context.Context,
+	db *gorm.DB,
 	unit *model.Unit,
 ) error {
-	return r.db.
+	return db.
 		WithContext(ctx).
 		Model(&model.Unit{}).
 		Where("unit_id = ?", unit.UnitID).
@@ -98,9 +99,10 @@ func (r *Repository) Update(
 
 func (r *Repository) Delete(
 	ctx context.Context,
+	db *gorm.DB,
 	unitID string,
 ) error {
-	return r.db.
+	return db.
 		WithContext(ctx).
 		Delete(
 			&model.Unit{},
@@ -112,10 +114,11 @@ func (r *Repository) Delete(
 
 func (r *Repository) GetNextUnitID(
 	ctx context.Context,
+	db *gorm.DB,
 ) (string, error) {
 	var lastUnitID string
 
-	err := r.db.
+	err := db.
 		WithContext(ctx).
 		Model(&model.Unit{}).
 		Select("unit_id").
@@ -133,6 +136,7 @@ func (r *Repository) GetNextUnitID(
 	}
 
 	var number int
+
 	_, err = fmt.Sscanf(lastUnitID, "UN%d", &number)
 	if err != nil {
 		return "", err

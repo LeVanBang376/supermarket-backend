@@ -10,21 +10,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository struct {
-	db *gorm.DB
-}
+type Repository struct{}
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{
-		db: db,
-	}
+func NewRepository() *Repository {
+	return &Repository{}
 }
 
 func (r *Repository) Create(
 	ctx context.Context,
+	db *gorm.DB,
 	branch *model.Branch,
 ) error {
-	return r.db.
+	return db.
 		WithContext(ctx).
 		Create(branch).
 		Error
@@ -32,11 +29,12 @@ func (r *Repository) Create(
 
 func (r *Repository) FindByID(
 	ctx context.Context,
+	db *gorm.DB,
 	branchID string,
 ) (*model.Branch, error) {
 	var branch model.Branch
 
-	err := r.db.
+	err := db.
 		WithContext(ctx).
 		First(&branch, "branch_id = ?", branchID).
 		Error
@@ -50,13 +48,15 @@ func (r *Repository) FindByID(
 
 func (r *Repository) FindAll(
 	ctx context.Context,
+	db *gorm.DB,
 	pagination *response.Pagination,
 ) ([]*model.Branch, error) {
 	var branches []*model.Branch
 
 	// Count total records
 	var total int64
-	if err := r.db.
+
+	if err := db.
 		WithContext(ctx).
 		Model(&model.Branch{}).
 		Count(&total).
@@ -76,7 +76,7 @@ func (r *Repository) FindAll(
 	offset := (pagination.Page - 1) * pagination.PerPage
 
 	// Get paginated branches
-	if err := r.db.
+	if err := db.
 		WithContext(ctx).
 		Limit(pagination.PerPage).
 		Offset(offset).
@@ -90,9 +90,10 @@ func (r *Repository) FindAll(
 
 func (r *Repository) Update(
 	ctx context.Context,
+	db *gorm.DB,
 	branch *model.Branch,
 ) error {
-	return r.db.
+	return db.
 		WithContext(ctx).
 		Model(&model.Branch{}).
 		Where("branch_id = ?", branch.BranchID).
@@ -102,9 +103,10 @@ func (r *Repository) Update(
 
 func (r *Repository) Delete(
 	ctx context.Context,
+	db *gorm.DB,
 	branchID string,
 ) error {
-	return r.db.
+	return db.
 		WithContext(ctx).
 		Delete(
 			&model.Branch{},
@@ -116,10 +118,11 @@ func (r *Repository) Delete(
 
 func (r *Repository) GetNextBranchID(
 	ctx context.Context,
+	db *gorm.DB,
 ) (string, error) {
 	var lastBranchID string
 
-	err := r.db.
+	err := db.
 		WithContext(ctx).
 		Model(&model.Branch{}).
 		Select("branch_id").
@@ -137,6 +140,7 @@ func (r *Repository) GetNextBranchID(
 	}
 
 	var number int
+
 	_, err = fmt.Sscanf(lastBranchID, "BR%d", &number)
 	if err != nil {
 		return "", err

@@ -6,7 +6,7 @@ import (
 
 	"supermarket-backend/internal/dto"
 	"supermarket-backend/internal/model"
-	"supermarket-backend/internal/repository/user"
+	userRepository "supermarket-backend/internal/repository/user"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -14,16 +14,24 @@ import (
 )
 
 type Service struct {
-	repo *user.Repository
+	db   *gorm.DB
+	repo *userRepository.Repository
 }
 
-func NewService(repo *user.Repository) *Service {
+func NewService(
+	db *gorm.DB,
+	repo *userRepository.Repository,
+) *Service {
 	return &Service{
+		db:   db,
 		repo: repo,
 	}
 }
 
-func (s *Service) Create(ctx context.Context, req dto.CreateUserRequest) (*model.User, error) {
+func (s *Service) Create(
+	ctx context.Context,
+	req dto.CreateUserRequest,
+) (*model.User, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword(
 		[]byte(req.Password),
 		bcrypt.DefaultCost,
@@ -34,15 +42,26 @@ func (s *Service) Create(ctx context.Context, req dto.CreateUserRequest) (*model
 
 	user := req.ToUserModel(string(passwordHash))
 
-	if err := s.repo.Create(ctx, user); err != nil {
+	if err := s.repo.Create(
+		ctx,
+		s.db,
+		user,
+	); err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (s *Service) FindByID(ctx context.Context, userID uuid.UUID) (*model.User, error) {
-	user, err := s.repo.FindByID(ctx, userID)
+func (s *Service) FindByID(
+	ctx context.Context,
+	userID uuid.UUID,
+) (*model.User, error) {
+	user, err := s.repo.FindByID(
+		ctx,
+		s.db,
+		userID,
+	)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -54,8 +73,13 @@ func (s *Service) FindByID(ctx context.Context, userID uuid.UUID) (*model.User, 
 	return user, nil
 }
 
-func (s *Service) FindAll(ctx context.Context) ([]*model.User, error) {
-	return s.repo.FindAll(ctx)
+func (s *Service) FindAll(
+	ctx context.Context,
+) ([]*model.User, error) {
+	return s.repo.FindAll(
+		ctx,
+		s.db,
+	)
 }
 
 func (s *Service) Update(
@@ -63,7 +87,11 @@ func (s *Service) Update(
 	userID uuid.UUID,
 	req dto.UpdateUserRequest,
 ) (*model.User, error) {
-	user, err := s.repo.FindByID(ctx, userID)
+	user, err := s.repo.FindByID(
+		ctx,
+		s.db,
+		userID,
+	)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -100,17 +128,31 @@ func (s *Service) Update(
 		user.Status = *req.Status
 	}
 
-	if err := s.repo.Update(ctx, user); err != nil {
+	if err := s.repo.Update(
+		ctx,
+		s.db,
+		user,
+	); err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (s *Service) Delete(ctx context.Context, userID uuid.UUID) error {
-	if _, err := s.FindByID(ctx, userID); err != nil {
+func (s *Service) Delete(
+	ctx context.Context,
+	userID uuid.UUID,
+) error {
+	if _, err := s.FindByID(
+		ctx,
+		userID,
+	); err != nil {
 		return err
 	}
 
-	return s.repo.Delete(ctx, userID)
+	return s.repo.Delete(
+		ctx,
+		s.db,
+		userID,
+	)
 }

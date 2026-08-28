@@ -9,26 +9,32 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository struct {
-	db *gorm.DB
+type Repository struct{}
+
+func NewRepository() *Repository {
+	return &Repository{}
 }
 
-func NewRepository(db *gorm.DB) *Repository {
-	return &Repository{
-		db: db,
-	}
-}
-
-func (r *Repository) Create(ctx context.Context, user *model.User) error {
-	return r.db.WithContext(ctx).
+func (r *Repository) Create(
+	ctx context.Context,
+	db *gorm.DB,
+	user *model.User,
+) error {
+	return db.
+		WithContext(ctx).
 		Create(user).
 		Error
 }
 
-func (r *Repository) FindByID(ctx context.Context, userID uuid.UUID) (*model.User, error) {
+func (r *Repository) FindByID(
+	ctx context.Context,
+	db *gorm.DB,
+	userID uuid.UUID,
+) (*model.User, error) {
 	var user model.User
 
-	err := r.db.WithContext(ctx).
+	err := db.
+		WithContext(ctx).
 		Preload("Branch").
 		Preload("Role").
 		Preload("Position").
@@ -42,10 +48,15 @@ func (r *Repository) FindByID(ctx context.Context, userID uuid.UUID) (*model.Use
 	return &user, nil
 }
 
-func (r *Repository) FindByUsername(ctx context.Context, username string) (*model.User, error) {
+func (r *Repository) FindByUsername(
+	ctx context.Context,
+	db *gorm.DB,
+	username string,
+) (*model.User, error) {
 	var user model.User
 
-	err := r.db.WithContext(ctx).
+	err := db.
+		WithContext(ctx).
 		Preload("Branch").
 		Preload("Role").
 		Preload("Position").
@@ -59,10 +70,14 @@ func (r *Repository) FindByUsername(ctx context.Context, username string) (*mode
 	return &user, nil
 }
 
-func (r *Repository) FindAll(ctx context.Context) ([]*model.User, error) {
+func (r *Repository) FindAll(
+	ctx context.Context,
+	db *gorm.DB,
+) ([]*model.User, error) {
 	var users []*model.User
 
-	err := r.db.WithContext(ctx).
+	err := db.
+		WithContext(ctx).
 		Preload("Branch").
 		Preload("Role").
 		Preload("Position").
@@ -76,14 +91,28 @@ func (r *Repository) FindAll(ctx context.Context) ([]*model.User, error) {
 	return users, nil
 }
 
-func (r *Repository) Update(ctx context.Context, user *model.User) error {
-	return r.db.WithContext(ctx).
+func (r *Repository) Update(
+	ctx context.Context,
+	db *gorm.DB,
+	user *model.User,
+) error {
+	return db.
+		WithContext(ctx).
 		Save(user).
 		Error
 }
 
-func (r *Repository) Delete(ctx context.Context, userID uuid.UUID) error {
-	return r.db.WithContext(ctx).
-		Delete(&model.User{}, "user_id = ?", userID).
+func (r *Repository) Delete(
+	ctx context.Context,
+	db *gorm.DB,
+	userID uuid.UUID,
+) error {
+	return db.
+		WithContext(ctx).
+		Delete(
+			&model.User{},
+			"user_id = ?",
+			userID,
+		).
 		Error
 }

@@ -6,14 +6,21 @@ import (
 	"supermarket-backend/internal/dto"
 	"supermarket-backend/internal/repository/position"
 	"supermarket-backend/internal/response"
+
+	"gorm.io/gorm"
 )
 
 type Service struct {
+	db         *gorm.DB
 	repository *position.Repository
 }
 
-func NewService(repository *position.Repository) *Service {
+func NewService(
+	db *gorm.DB,
+	repository *position.Repository,
+) *Service {
 	return &Service{
+		db:         db,
 		repository: repository,
 	}
 }
@@ -22,7 +29,11 @@ func (s *Service) FindByID(
 	ctx context.Context,
 	positionID string,
 ) (*dto.PositionResponse, error) {
-	position, err := s.repository.FindByID(ctx, positionID)
+	position, err := s.repository.FindByID(
+		ctx,
+		s.db,
+		positionID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +45,11 @@ func (s *Service) FindAll(
 	ctx context.Context,
 	pagination *response.Pagination,
 ) ([]*dto.PositionResponse, error) {
-	positions, err := s.repository.FindAll(ctx, pagination)
+	positions, err := s.repository.FindAll(
+		ctx,
+		s.db,
+		pagination,
+	)
 	if err != nil {
 		return nil, err
 	}
