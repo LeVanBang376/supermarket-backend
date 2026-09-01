@@ -54,6 +54,10 @@ type UserResponse struct {
 }
 
 func FromUserModelToResponse(user *model.User) *UserResponse {
+	if user == nil {
+		return nil
+	}
+
 	var u *UserResponse = &UserResponse{}
 
 	u.UserID = user.UserID

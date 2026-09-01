@@ -156,3 +156,43 @@ func (r *Repository) SetQuantity(
 		).
 		Error
 }
+
+func (r *Repository) IncreaseOrCreate(
+	ctx context.Context,
+	db *gorm.DB,
+	branchID string,
+	skuBarcode string,
+	quantity int,
+) error {
+	stock, err := r.FindByBranchAndSKU(
+		ctx,
+		db,
+		branchID,
+		skuBarcode,
+	)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			stock := &model.Stock{
+				BranchID:   branchID,
+				SKUBarcode: skuBarcode,
+				Quantity:   quantity,
+			}
+
+			return db.
+				WithContext(ctx).
+				Create(stock).
+				Error
+		}
+
+		return err
+	}
+
+	return r.IncreaseQuantity(
+		ctx,
+		db,
+		stock.BranchID,
+		stock.SKUBarcode,
+		quantity,
+	)
+}

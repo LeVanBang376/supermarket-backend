@@ -1,7 +1,8 @@
-package sku
+package import_request
 
 import (
 	"context"
+	"fmt"
 
 	"supermarket-backend/internal/model"
 	"supermarket-backend/internal/response"
@@ -15,50 +16,70 @@ func NewRepository() *Repository {
 	return &Repository{}
 }
 
+func (r *Repository) GetNextRequestID(
+	ctx context.Context,
+	db *gorm.DB,
+) (string, error) {
+	var nextID int64
+
+	err := db.
+		WithContext(ctx).
+		Raw("SELECT nextval('import_request_id_seq')").
+		Scan(&nextID).
+		Error
+
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("IR%05d", nextID), nil
+}
+
 func (r *Repository) Create(
 	ctx context.Context,
 	db *gorm.DB,
-	sku *model.SKU,
+	request *model.ImportRequest,
 ) error {
 	return db.
 		WithContext(ctx).
-		Create(sku).
+		Create(request).
 		Error
 }
 
 func (r *Repository) FindByID(
 	ctx context.Context,
 	db *gorm.DB,
-	skuBarcode string,
-) (*model.SKU, error) {
-	var sku model.SKU
+	requestID string,
+) (*model.ImportRequest, error) {
+	var request model.ImportRequest
 
 	err := db.
 		WithContext(ctx).
-		Preload("Brand").
-		Preload("Unit").
-		First(&sku, "sku_barcode = ?", skuBarcode).
+		Preload("Branch").
+		Preload("Creator").
+		Preload("Receiver").
+		First(&request, "request_id = ?", requestID).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &sku, nil
+	return &request, nil
 }
 
 func (r *Repository) FindAll(
 	ctx context.Context,
 	db *gorm.DB,
 	pagination *response.Pagination,
-) ([]*model.SKU, error) {
-	var skus []*model.SKU
+) ([]*model.ImportRequest, error) {
+	var requests []*model.ImportRequest
 
 	var total int64
 
 	if err := db.
 		WithContext(ctx).
-		Model(&model.SKU{}).
+		Model(&model.ImportRequest{}).
 		Count(&total).
 		Error; err != nil {
 		return nil, err
@@ -75,42 +96,27 @@ func (r *Repository) FindAll(
 
 	if err := db.
 		WithContext(ctx).
-		Preload("Brand").
-		Preload("Unit").
+		Preload("Branch").
+		Preload("Creator").
 		Limit(pagination.PerPage).
 		Offset(offset).
-		Find(&skus).
+		Find(&requests).
 		Error; err != nil {
 		return nil, err
 	}
 
-	return skus, nil
+	return requests, nil
 }
 
 func (r *Repository) Update(
 	ctx context.Context,
 	db *gorm.DB,
-	sku *model.SKU,
+	request *model.ImportRequest,
 ) error {
 	return db.
 		WithContext(ctx).
-		Model(&model.SKU{}).
-		Where("sku_barcode = ?", sku.SKUBarcode).
-		Updates(sku).
-		Error
-}
-
-func (r *Repository) Delete(
-	ctx context.Context,
-	db *gorm.DB,
-	skuBarcode string,
-) error {
-	return db.
-		WithContext(ctx).
-		Delete(
-			&model.SKU{},
-			"sku_barcode = ?",
-			skuBarcode,
-		).
+		Model(&model.ImportRequest{}).
+		Where("request_id = ?", request.RequestID).
+		Updates(request).
 		Error
 }

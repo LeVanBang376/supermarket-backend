@@ -21,7 +21,9 @@ type SKUResponse struct {
 	SKUBarcode    string `json:"sku_barcode"`
 	SKUName       string `json:"sku_name"`
 	BrandID       string `json:"brand_id"`
+	BrandName     string `json:"brand_name"`
 	UnitID        string `json:"unit_id"`
+	UnitName      string `json:"unit_name"`
 	ShelfLifeDays int    `json:"shelf_life_days"`
 }
 
@@ -31,7 +33,9 @@ func FromSKUModelToResponse(sku *model.SKU) *SKUResponse {
 	s.SKUBarcode = sku.SKUBarcode
 	s.SKUName = sku.SKUName
 	s.BrandID = sku.BrandID
+	s.BrandName = sku.Brand.BrandName
 	s.UnitID = sku.UnitID
+	s.UnitName = sku.Unit.UnitName
 	s.ShelfLifeDays = sku.ShelfLifeDays
 
 	return s

@@ -38,6 +38,32 @@ definitions:
     required:
     - brand_name
     type: object
+  supermarket-backend_internal_dto.CreateImportRequestProduct:
+    properties:
+      quantity:
+        type: integer
+      sku_barcode:
+        type: string
+    required:
+    - quantity
+    - sku_barcode
+    type: object
+  supermarket-backend_internal_dto.CreateImportRequestRequest:
+    properties:
+      branch_id:
+        type: string
+      expected_delivery_at:
+        type: string
+      products:
+        items:
+          $ref: '#/definitions/supermarket-backend_internal_dto.CreateImportRequestProduct'
+        minItems: 1
+        type: array
+    required:
+    - branch_id
+    - expected_delivery_at
+    - products
+    type: object
   supermarket-backend_internal_dto.CreateSKURequest:
     properties:
       brand_id:
@@ -69,6 +95,61 @@ definitions:
         type: string
     required:
     - unit_name
+    type: object
+  supermarket-backend_internal_dto.ImportRequestProductResponse:
+    properties:
+      loaded_quantity:
+        type: integer
+      quantity:
+        type: integer
+      received_quantity:
+        type: integer
+      sku_barcode:
+        type: string
+      sku_name:
+        type: string
+      tote_barcode:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.ImportRequestResponse:
+    properties:
+      branch:
+        $ref: '#/definitions/supermarket-backend_internal_dto.BranchResponse'
+      complete_at:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      creator:
+        $ref: '#/definitions/supermarket-backend_internal_dto.UserResponse'
+      delivery_license_plate:
+        type: string
+      expected_delivery_at:
+        type: string
+      products:
+        items:
+          $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestProductResponse'
+        type: array
+      received_by:
+        type: string
+      receiver:
+        $ref: '#/definitions/supermarket-backend_internal_dto.UserResponse'
+      request_id:
+        type: string
+      status:
+        type: string
+      totes:
+        items:
+          $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestToteResponse'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.ImportRequestToteResponse:
+    properties:
+      tote_barcode:
+        type: string
     type: object
   supermarket-backend_internal_dto.LoginRequest:
     properties:
@@ -109,6 +190,8 @@ definitions:
     properties:
       brand_id:
         type: string
+      brand_name:
+        type: string
       shelf_life_days:
         type: integer
       sku_barcode:
@@ -116,6 +199,8 @@ definitions:
       sku_name:
         type: string
       unit_id:
+        type: string
+      unit_name:
         type: string
     type: object
   supermarket-backend_internal_dto.StockResponse:
@@ -148,6 +233,49 @@ definitions:
       brand_name:
         maxLength: 30
         type: string
+    type: object
+  supermarket-backend_internal_dto.UpdateImportRequestProduct:
+    properties:
+      loaded_quantity:
+        minimum: 0
+        type: integer
+      quantity:
+        type: integer
+      received_quantity:
+        minimum: 0
+        type: integer
+      sku_barcode:
+        type: string
+      tote_barcode:
+        type: string
+    required:
+    - sku_barcode
+    type: object
+  supermarket-backend_internal_dto.UpdateImportRequestRequest:
+    properties:
+      branch_id:
+        type: string
+      delivery_license_plate:
+        type: string
+      expected_delivery_at:
+        type: string
+      products:
+        items:
+          $ref: '#/definitions/supermarket-backend_internal_dto.UpdateImportRequestProduct'
+        type: array
+      products_barcode_to_delete:
+        items:
+          type: string
+        type: array
+      received_by:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.UpdateImportRequestStatusRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
     type: object
   supermarket-backend_internal_dto.UpdateSKURequest:
     properties:
@@ -543,6 +671,394 @@ paths:
       summary: Update brand
       tags:
       - brands
+  /import-requests:
+    get:
+      description: Get all import requests
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all import requests
+      tags:
+      - import-requests
+    post:
+      consumes:
+      - application/json
+      description: Create a new import request
+      parameters:
+      - description: Create import request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.CreateImportRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create import request
+      tags:
+      - import-requests
+  /import-requests/{request_id}:
+    get:
+      description: Get an import request by ID
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get import request by ID
+      tags:
+      - import-requests
+    patch:
+      consumes:
+      - application/json
+      description: Update an import request and its products
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      - description: Update import request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.UpdateImportRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Update import request
+      tags:
+      - import-requests
+  /import-requests/{request_id}/confirm:
+    post:
+      description: Confirm an import request and update stock quantities
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Confirm import request
+      tags:
+      - import-requests
+  /import-requests/{request_id}/products:
+    get:
+      description: Get all products belonging to an import request
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestProductResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get products of an import request
+      tags:
+      - import-request-products
+  /import-requests/{request_id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of an import request
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      - description: Update import request status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.UpdateImportRequestStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Update import request status
+      tags:
+      - import-requests
+  /import-requests/{request_id}/totes:
+    get:
+      description: Get all totes belonging to an import request
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestToteResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all totes of an import request
+      tags:
+      - import-request-totes
+  /import-requests/{request_id}/totes/{tote_barcode}:
+    delete:
+      description: Delete a tote from an import request
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      - description: Tote barcode
+        in: path
+        name: tote_barcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete import request tote
+      tags:
+      - import-request-totes
+    get:
+      description: Get a tote belonging to an import request
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      - description: Tote barcode
+        in: path
+        name: tote_barcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestToteResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get import request tote by barcode
+      tags:
+      - import-request-totes
+    post:
+      description: Add a tote to an import request
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      - description: Tote barcode
+        in: path
+        name: tote_barcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestToteResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create import request tote
+      tags:
+      - import-request-totes
+  /import-requests/{request_id}/totes/{tote_barcode}/products:
+    get:
+      description: Get all products belonging to a specific tote in an import request
+      parameters:
+      - description: Import request ID
+        in: path
+        name: request_id
+        required: true
+        type: string
+      - description: Tote barcode
+        in: path
+        name: tote_barcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestProductResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get products of a tote
+      tags:
+      - import-request-products
   /positions:
     get:
       description: Get all positions
