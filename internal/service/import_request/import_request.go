@@ -3,6 +3,7 @@ package import_request
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"supermarket-backend/internal/dto"
 	"supermarket-backend/internal/model"
@@ -13,6 +14,15 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+)
+
+var (
+	ErrLoadedQuantityMismatch = errors.New(
+		"Số lượng hàng đã xếp phải bằng số lượng yêu cầu",
+	)
+	ErrProductToteBarcodeRequired = errors.New(
+		"Tất cả sản phẩm phải được gán tote barcode",
+	)
 )
 
 type Service struct {
@@ -78,11 +88,13 @@ func (s *Service) Create(
 
 func (s *Service) FindAll(
 	ctx context.Context,
+	query dto.FindAllImportRequestsQuery,
 	pagination *response.Pagination,
 ) ([]*dto.ImportRequestResponse, error) {
 	requests, err := s.repository.FindAll(
 		ctx,
 		s.db,
+		query,
 		pagination,
 	)
 	if err != nil {
@@ -156,6 +168,14 @@ func (s *Service) UpdateStatus(
 				return gorm.ErrInvalidData
 			}
 
+			if err := s.validateSupplierReceivedProducts(
+				ctx,
+				tx,
+				requestID,
+			); err != nil {
+				return err
+			}
+
 		case model.ImportRequestStatusDelivering:
 			if req.Status != model.ImportRequestStatusRejected {
 				return gorm.ErrInvalidData
@@ -179,6 +199,43 @@ func (s *Service) UpdateStatus(
 			request,
 		)
 	})
+}
+
+func (s *Service) validateSupplierReceivedProducts(
+	ctx context.Context,
+	tx *gorm.DB,
+	requestID string,
+) error {
+	products, err := s.productRepository.FindByRequestID(
+		ctx,
+		tx,
+		requestID,
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, product := range products {
+		// Loaded quantity must equal requested quantity.
+		if product.LoadedQuantity != product.Quantity {
+			return fmt.Errorf(
+				"sản phẩm %s: số lượng đã xếp (%d) phải bằng số lượng yêu cầu (%d)",
+				product.SKUBarcode,
+				product.LoadedQuantity,
+				product.Quantity,
+			)
+		}
+
+		// Every product must have a tote barcode.
+		if product.ToteBarcode == nil || *product.ToteBarcode == "" {
+			return fmt.Errorf(
+				"sản phẩm %s: chưa được gán tote barcode",
+				product.SKUBarcode,
+			)
+		}
+	}
+
+	return nil
 }
 
 func (s *Service) Update(

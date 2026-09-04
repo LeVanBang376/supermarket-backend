@@ -91,14 +91,27 @@ func (h *ImportRequestHandler) Create(c *gin.Context) {
 // @Produce      json
 // @Param        page query int false "Page number" default(1)
 // @Param        per_page query int false "Number of items per page" default(10)
+// @Param        status query string false "Filter by status"
 // @Success      200 {array} dto.ImportRequestResponse
+// @Failure      400 {object} gin.H
 // @Failure      500 {object} gin.H
 // @Router       /import-requests [get]
 func (h *ImportRequestHandler) FindAll(c *gin.Context) {
 	pagination := response.NewPagination(c.Request)
 
+	var query dto.FindAllImportRequestsQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		response.NonDataJSON(
+			c.Writer,
+			http.StatusBadRequest,
+			err.Error(),
+		)
+		return
+	}
+
 	requests, err := h.service.FindAll(
 		c.Request.Context(),
+		query,
 		pagination,
 	)
 	if err != nil {

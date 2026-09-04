@@ -10,6 +10,8 @@ definitions:
         type: string
       branch_name:
         type: string
+      type:
+        $ref: '#/definitions/supermarket-backend_internal_model.BranchType'
     type: object
   supermarket-backend_internal_dto.BrandResponse:
     properties:
@@ -26,9 +28,17 @@ definitions:
       branch_name:
         maxLength: 100
         type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/supermarket-backend_internal_model.BranchType'
+        enum:
+        - HEADQUARTERS
+        - SUPERMARKET
+        - SUPPLIER
     required:
     - address
     - branch_name
+    - type
     type: object
   supermarket-backend_internal_dto.CreateBrandRequest:
     properties:
@@ -227,6 +237,13 @@ definitions:
       branch_name:
         maxLength: 100
         type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/supermarket-backend_internal_model.BranchType'
+        enum:
+        - HEADQUARTERS
+        - SUPERMARKET
+        - SUPPLIER
     type: object
   supermarket-backend_internal_dto.UpdateBrandRequest:
     properties:
@@ -319,6 +336,16 @@ definitions:
       username:
         type: string
     type: object
+  supermarket-backend_internal_model.BranchType:
+    enum:
+    - HEADQUARTERS
+    - SUPERMARKET
+    - SUPPLIER
+    type: string
+    x-enum-varnames:
+    - BranchTypeHeadquarters
+    - BranchTypeSupermarket
+    - BranchTypeSupplier
 host: localhost:8080
 info:
   contact: {}
@@ -685,6 +712,10 @@ paths:
         in: query
         name: per_page
         type: integer
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
@@ -694,6 +725,10 @@ paths:
             items:
               $ref: '#/definitions/supermarket-backend_internal_dto.ImportRequestResponse'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
         "500":
           description: Internal Server Error
           schema:

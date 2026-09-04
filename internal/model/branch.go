@@ -4,12 +4,21 @@ import "time"
 
 const DefaultBranchID = "BR0001"
 
+type BranchType string
+
+const (
+	BranchTypeHeadquarters BranchType = "HEADQUARTERS"
+	BranchTypeSupermarket  BranchType = "SUPERMARKET"
+	BranchTypeSupplier     BranchType = "SUPPLIER"
+)
+
 type Branch struct {
-	BranchID   string    `gorm:"column:branch_id;type:varchar(6);primaryKey"`
-	BranchName string    `gorm:"column:branch_name;type:varchar(100);not null"`
-	Address    string    `gorm:"column:address;type:varchar(150);not null"`
-	CreatedAt  time.Time `gorm:"column:created_at;not null;default:now()"`
-	UpdatedAt  time.Time `gorm:"column:updated_at;not null;default:now()"`
+	BranchID   string     `gorm:"column:branch_id;type:varchar(6);primaryKey"`
+	BranchName string     `gorm:"column:branch_name;type:varchar(100);not null"`
+	Address    string     `gorm:"column:address;type:varchar(150);not null"`
+	Type       BranchType `gorm:"column:type;type:varchar(20);not null;default:SUPERMARKET"`
+	CreatedAt  time.Time  `gorm:"column:created_at;not null;default:now()"`
+	UpdatedAt  time.Time  `gorm:"column:updated_at;not null;default:now()"`
 
 	Users []User `gorm:"foreignKey:BranchID;references:BranchID"`
 }

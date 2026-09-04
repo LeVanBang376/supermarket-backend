@@ -560,6 +560,12 @@ const docTemplate = `{
                         "description": "Number of items per page",
                         "name": "per_page",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -570,6 +576,12 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestResponse"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "500": {
@@ -1788,6 +1800,9 @@ const docTemplate = `{
                 },
                 "branch_name": {
                     "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/supermarket-backend_internal_model.BranchType"
                 }
             }
         },
@@ -1806,7 +1821,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "address",
-                "branch_name"
+                "branch_name",
+                "type"
             ],
             "properties": {
                 "address": {
@@ -1816,6 +1832,18 @@ const docTemplate = `{
                 "branch_name": {
                     "type": "string",
                     "maxLength": 100
+                },
+                "type": {
+                    "enum": [
+                        "HEADQUARTERS",
+                        "SUPERMARKET",
+                        "SUPPLIER"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/supermarket-backend_internal_model.BranchType"
+                        }
+                    ]
                 }
             }
         },
@@ -2112,6 +2140,18 @@ const docTemplate = `{
                 "branch_name": {
                     "type": "string",
                     "maxLength": 100
+                },
+                "type": {
+                    "enum": [
+                        "HEADQUARTERS",
+                        "SUPERMARKET",
+                        "SUPPLIER"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/supermarket-backend_internal_model.BranchType"
+                        }
+                    ]
                 }
             }
         },
@@ -2250,6 +2290,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "supermarket-backend_internal_model.BranchType": {
+            "type": "string",
+            "enum": [
+                "HEADQUARTERS",
+                "SUPERMARKET",
+                "SUPPLIER"
+            ],
+            "x-enum-varnames": [
+                "BranchTypeHeadquarters",
+                "BranchTypeSupermarket",
+                "BranchTypeSupplier"
+            ]
         }
     },
     "securityDefinitions": {

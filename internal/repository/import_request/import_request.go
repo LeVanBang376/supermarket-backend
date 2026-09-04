@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"supermarket-backend/internal/dto"
 	"supermarket-backend/internal/model"
 	"supermarket-backend/internal/response"
 
@@ -71,15 +72,26 @@ func (r *Repository) FindByID(
 func (r *Repository) FindAll(
 	ctx context.Context,
 	db *gorm.DB,
+	query dto.FindAllImportRequestsQuery,
 	pagination *response.Pagination,
 ) ([]*model.ImportRequest, error) {
 	var requests []*model.ImportRequest
-
 	var total int64
 
-	if err := db.
+	queryBuilder := db.
 		WithContext(ctx).
-		Model(&model.ImportRequest{}).
+		Model(&model.ImportRequest{})
+
+	// Filter
+	if query.Status != nil {
+		queryBuilder = queryBuilder.Where(
+			"status = ?",
+			*query.Status,
+		)
+	}
+
+	// Count total records after applying filter
+	if err := queryBuilder.
 		Count(&total).
 		Error; err != nil {
 		return nil, err
@@ -94,8 +106,8 @@ func (r *Repository) FindAll(
 
 	offset := (pagination.Page - 1) * pagination.PerPage
 
-	if err := db.
-		WithContext(ctx).
+	// Get data
+	if err := queryBuilder.
 		Preload("Branch").
 		Preload("Creator").
 		Limit(pagination.PerPage).

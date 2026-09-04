@@ -8,6 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type FindAllImportRequestsQuery struct {
+	Status *string `form:"status"`
+}
+
 type CreateImportRequestRequest struct {
 	BranchID           string                       `json:"branch_id" binding:"required"`
 	ExpectedDeliveryAt time.Time                    `json:"expected_delivery_at" binding:"required"`

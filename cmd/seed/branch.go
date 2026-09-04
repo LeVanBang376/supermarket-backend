@@ -15,11 +15,19 @@ func seedBranches(db *gorm.DB) error {
 			BranchID:   "BR0001",
 			BranchName: "Chi nhánh trung tâm",
 			Address:    "Hồ Chí Minh",
+			Type:       model.BranchTypeHeadquarters,
 		},
 		{
 			BranchID:   "BR0002",
-			BranchName: "Chi nhánh Quận 1",
+			BranchName: "Siêu thị Quận 1",
 			Address:    "Quận 1, Hồ Chí Minh",
+			Type:       model.BranchTypeSupermarket,
+		},
+		{
+			BranchID:   "BR0002",
+			BranchName: "Nhà cung cấp TP.Hồ Chí Minh",
+			Address:    "Quận 7, Hồ Chí Minh",
+			Type:       model.BranchTypeSupplier,
 		},
 	}
 
