@@ -49,7 +49,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := seedAdmin(database, cfg); err != nil {
+	if err := seedUsers(database, cfg); err != nil {
 		log.Fatal(err)
 	}
 

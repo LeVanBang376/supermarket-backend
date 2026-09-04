@@ -35,6 +35,8 @@ func (r *Repository) FindByID(
 
 	err := db.
 		WithContext(ctx).
+		Preload("Brand").
+		Preload("Unit").
 		First(&sku, "sku_barcode = ?", skuBarcode).
 		Error
 
@@ -73,6 +75,8 @@ func (r *Repository) FindAll(
 
 	if err := db.
 		WithContext(ctx).
+		Preload("Brand").
+		Preload("Unit").
 		Limit(pagination.PerPage).
 		Offset(offset).
 		Find(&skus).

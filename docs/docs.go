@@ -536,6 +536,602 @@ const docTemplate = `{
                 }
             }
         },
+        "/import-requests": {
+            "get": {
+                "description": "Get all import requests",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-requests"
+                ],
+                "summary": "Get all import requests",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new import request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-requests"
+                ],
+                "summary": "Create import request",
+                "parameters": [
+                    {
+                        "description": "Create import request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.CreateImportRequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/import-requests/{request_id}": {
+            "get": {
+                "description": "Get an import request by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-requests"
+                ],
+                "summary": "Get import request by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update an import request and its products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-requests"
+                ],
+                "summary": "Update import request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update import request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.UpdateImportRequestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/import-requests/{request_id}/confirm": {
+            "post": {
+                "description": "Confirm an import request and update stock quantities",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-requests"
+                ],
+                "summary": "Confirm import request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/import-requests/{request_id}/products": {
+            "get": {
+                "description": "Get all products belonging to an import request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-request-products"
+                ],
+                "summary": "Get products of an import request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestProductResponse"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/import-requests/{request_id}/status": {
+            "patch": {
+                "description": "Update the status of an import request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-requests"
+                ],
+                "summary": "Update import request status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update import request status",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.UpdateImportRequestStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/import-requests/{request_id}/totes": {
+            "get": {
+                "description": "Get all totes belonging to an import request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-request-totes"
+                ],
+                "summary": "Get all totes of an import request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestToteResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/import-requests/{request_id}/totes/{tote_barcode}": {
+            "get": {
+                "description": "Get a tote belonging to an import request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-request-totes"
+                ],
+                "summary": "Get import request tote by barcode",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tote barcode",
+                        "name": "tote_barcode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestToteResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add a tote to an import request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-request-totes"
+                ],
+                "summary": "Create import request tote",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tote barcode",
+                        "name": "tote_barcode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestToteResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a tote from an import request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-request-totes"
+                ],
+                "summary": "Delete import request tote",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tote barcode",
+                        "name": "tote_barcode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/import-requests/{request_id}/totes/{tote_barcode}/products": {
+            "get": {
+                "description": "Get all products belonging to a specific tote in an import request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "import-request-products"
+                ],
+                "summary": "Get products of a tote",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import request ID",
+                        "name": "request_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tote barcode",
+                        "name": "tote_barcode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestProductResponse"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
         "/positions": {
             "get": {
                 "description": "Get all positions",
@@ -1204,6 +1800,9 @@ const docTemplate = `{
                 },
                 "branch_name": {
                     "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/supermarket-backend_internal_model.BranchType"
                 }
             }
         },
@@ -1222,7 +1821,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "address",
-                "branch_name"
+                "branch_name",
+                "type"
             ],
             "properties": {
                 "address": {
@@ -1232,6 +1832,18 @@ const docTemplate = `{
                 "branch_name": {
                     "type": "string",
                     "maxLength": 100
+                },
+                "type": {
+                    "enum": [
+                        "HEADQUARTERS",
+                        "SUPERMARKET",
+                        "SUPPLIER"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/supermarket-backend_internal_model.BranchType"
+                        }
+                    ]
                 }
             }
         },
@@ -1244,6 +1856,44 @@ const docTemplate = `{
                 "brand_name": {
                     "type": "string",
                     "maxLength": 30
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.CreateImportRequestProduct": {
+            "type": "object",
+            "required": [
+                "quantity",
+                "sku_barcode"
+            ],
+            "properties": {
+                "quantity": {
+                    "type": "integer"
+                },
+                "sku_barcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.CreateImportRequestRequest": {
+            "type": "object",
+            "required": [
+                "branch_id",
+                "expected_delivery_at",
+                "products"
+            ],
+            "properties": {
+                "branch_id": {
+                    "type": "string"
+                },
+                "expected_delivery_at": {
+                    "type": "string"
+                },
+                "products": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/supermarket-backend_internal_dto.CreateImportRequestProduct"
+                    }
                 }
             }
         },
@@ -1288,6 +1938,90 @@ const docTemplate = `{
                 "unit_name": {
                     "type": "string",
                     "maxLength": 30
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.ImportRequestProductResponse": {
+            "type": "object",
+            "properties": {
+                "loaded_quantity": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "received_quantity": {
+                    "type": "integer"
+                },
+                "sku_barcode": {
+                    "type": "string"
+                },
+                "sku_name": {
+                    "type": "string"
+                },
+                "tote_barcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.ImportRequestResponse": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "$ref": "#/definitions/supermarket-backend_internal_dto.BranchResponse"
+                },
+                "complete_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/supermarket-backend_internal_dto.UserResponse"
+                },
+                "delivery_license_plate": {
+                    "type": "string"
+                },
+                "expected_delivery_at": {
+                    "type": "string"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestProductResponse"
+                    }
+                },
+                "received_by": {
+                    "type": "string"
+                },
+                "receiver": {
+                    "$ref": "#/definitions/supermarket-backend_internal_dto.UserResponse"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "totes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/supermarket-backend_internal_dto.ImportRequestToteResponse"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.ImportRequestToteResponse": {
+            "type": "object",
+            "properties": {
+                "tote_barcode": {
+                    "type": "string"
                 }
             }
         },
@@ -1351,6 +2085,9 @@ const docTemplate = `{
                 "brand_id": {
                     "type": "string"
                 },
+                "brand_name": {
+                    "type": "string"
+                },
                 "shelf_life_days": {
                     "type": "integer"
                 },
@@ -1361,6 +2098,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "unit_id": {
+                    "type": "string"
+                },
+                "unit_name": {
                     "type": "string"
                 }
             }
@@ -1400,6 +2140,18 @@ const docTemplate = `{
                 "branch_name": {
                     "type": "string",
                     "maxLength": 100
+                },
+                "type": {
+                    "enum": [
+                        "HEADQUARTERS",
+                        "SUPERMARKET",
+                        "SUPPLIER"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/supermarket-backend_internal_model.BranchType"
+                        }
+                    ]
                 }
             }
         },
@@ -1409,6 +2161,71 @@ const docTemplate = `{
                 "brand_name": {
                     "type": "string",
                     "maxLength": 30
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.UpdateImportRequestProduct": {
+            "type": "object",
+            "required": [
+                "sku_barcode"
+            ],
+            "properties": {
+                "loaded_quantity": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "received_quantity": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "sku_barcode": {
+                    "type": "string"
+                },
+                "tote_barcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.UpdateImportRequestRequest": {
+            "type": "object",
+            "properties": {
+                "branch_id": {
+                    "type": "string"
+                },
+                "delivery_license_plate": {
+                    "type": "string"
+                },
+                "expected_delivery_at": {
+                    "type": "string"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/supermarket-backend_internal_dto.UpdateImportRequestProduct"
+                    }
+                },
+                "products_barcode_to_delete": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "received_by": {
+                    "type": "string"
+                }
+            }
+        },
+        "supermarket-backend_internal_dto.UpdateImportRequestStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -1473,6 +2290,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "supermarket-backend_internal_model.BranchType": {
+            "type": "string",
+            "enum": [
+                "HEADQUARTERS",
+                "SUPERMARKET",
+                "SUPPLIER"
+            ],
+            "x-enum-varnames": [
+                "BranchTypeHeadquarters",
+                "BranchTypeSupermarket",
+                "BranchTypeSupplier"
+            ]
         }
     },
     "securityDefinitions": {

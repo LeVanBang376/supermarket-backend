@@ -24,6 +24,10 @@ func seedRoles(db *gorm.DB) error {
 			RoleID:   model.RoleHR,
 			RoleName: model.RoleHRName,
 		},
+		{
+			RoleID:   model.RoleSupplier,
+			RoleName: model.RoleSupplierName,
+		},
 	}
 
 	for _, role := range roles {

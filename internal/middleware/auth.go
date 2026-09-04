@@ -7,6 +7,7 @@ import (
 	"supermarket-backend/internal/response"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 const ContextUserKey = "user"
@@ -55,4 +56,14 @@ func GetClaims(c *gin.Context) *jwt.Claims {
 	}
 
 	return result
+}
+
+func GetUserID(c *gin.Context) uuid.UUID {
+	claims := GetClaims(c)
+
+	if claims == nil {
+		return uuid.Nil
+	}
+
+	return claims.UserID
 }

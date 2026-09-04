@@ -13,31 +13,41 @@ import (
 	"log"
 	"net/http"
 	"os/signal"
+	"sync/atomic"
+	"syscall"
+	"time"
+
 	"supermarket-backend/infrastructure/db"
 	"supermarket-backend/infrastructure/jwt"
 	"supermarket-backend/internal/config"
 	"supermarket-backend/internal/handler"
 	"supermarket-backend/internal/middleware"
+
 	branchRepository "supermarket-backend/internal/repository/branch"
 	brandRepository "supermarket-backend/internal/repository/brand"
+	importRequestRepository "supermarket-backend/internal/repository/import_request"
+	importRequestProductRepository "supermarket-backend/internal/repository/import_request_product"
+	importRequestToteRepository "supermarket-backend/internal/repository/import_request_tote"
 	positionRepository "supermarket-backend/internal/repository/position"
 	roleRepository "supermarket-backend/internal/repository/role"
 	skuRepository "supermarket-backend/internal/repository/sku"
 	stockRepository "supermarket-backend/internal/repository/stock"
 	unitRepository "supermarket-backend/internal/repository/unit"
 	userRepository "supermarket-backend/internal/repository/user"
+
 	"supermarket-backend/internal/routes"
+
 	authService "supermarket-backend/internal/service/auth"
 	branchService "supermarket-backend/internal/service/branch"
 	brandService "supermarket-backend/internal/service/brand"
+	importRequestService "supermarket-backend/internal/service/import_request"
+	importRequestProductService "supermarket-backend/internal/service/import_request_product"
+	importRequestToteService "supermarket-backend/internal/service/import_request_tote"
 	positionService "supermarket-backend/internal/service/position"
 	roleService "supermarket-backend/internal/service/role"
 	skuService "supermarket-backend/internal/service/sku"
 	stockService "supermarket-backend/internal/service/stock"
 	unitService "supermarket-backend/internal/service/unit"
-	"sync/atomic"
-	"syscall"
-	"time"
 
 	_ "supermarket-backend/docs"
 
@@ -97,6 +107,10 @@ func main() {
 	roleRepo := roleRepository.NewRepository()
 	positionRepo := positionRepository.NewRepository()
 
+	importRequestRepo := importRequestRepository.NewRepository()
+	importRequestProductRepo := importRequestProductRepository.NewRepository()
+	importRequestToteRepo := importRequestToteRepository.NewRepository()
+
 	// Services
 	authSvc := authService.NewService(
 		database,
@@ -139,6 +153,24 @@ func main() {
 		positionRepo,
 	)
 
+	importRequestSvc := importRequestService.NewService(
+		database,
+		importRequestRepo,
+		importRequestProductRepo,
+		stockRepo,
+	)
+
+	importRequestProductSvc := importRequestProductService.NewService(
+		database,
+		importRequestProductRepo,
+	)
+
+	importRequestToteSvc := importRequestToteService.NewService(
+		database,
+		importRequestToteRepo,
+		importRequestRepo,
+	)
+
 	// Handlers
 	authHandler := handler.NewAuthHandler(authSvc)
 	branchHandler := handler.NewBranchHandler(branchSvc)
@@ -148,6 +180,18 @@ func main() {
 	stockHandler := handler.NewStockHandler(stockSvc)
 	roleHandler := handler.NewRoleHandler(roleSvc)
 	positionHandler := handler.NewPositionHandler(positionSvc)
+
+	importRequestHandler := handler.NewImportRequestHandler(
+		importRequestSvc,
+	)
+
+	importRequestProductHandler := handler.NewImportRequestProductHandler(
+		importRequestProductSvc,
+	)
+
+	importRequestToteHandler := handler.NewImportRequestToteHandler(
+		importRequestToteSvc,
+	)
 
 	// Gin
 	router := gin.New()
@@ -231,6 +275,14 @@ func main() {
 	routes.RegisterPositionRoutes(
 		router,
 		positionHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterImportRequestRoutes(
+		router,
+		importRequestHandler,
+		importRequestProductHandler,
+		importRequestToteHandler,
 		authMiddleware,
 	)
 

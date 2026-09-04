@@ -7,6 +7,7 @@ const (
 	RoleManager  = "MANAGER"
 	RoleEmployee = "EMPLOYEE"
 	RoleHR       = "HR"
+	RoleSupplier = "SUPPLIER"
 )
 
 const (
@@ -14,6 +15,7 @@ const (
 	RoleManagerName  = "Manager"
 	RoleEmployeeName = "Employee"
 	RoleHRName       = "HR"
+	RoleSupplierName = "Nhà cung cấp"
 )
 
 type Role struct {
