@@ -15,7 +15,7 @@ const (
 	accessTokenCookie  = "access_token"
 	refreshTokenCookie = "refresh_token"
 
-	accessTokenMaxAge  = 1200
+	accessTokenMaxAge  = 15 * 60
 	refreshTokenMaxAge = 7 * 24 * 60 * 60
 )
 
@@ -92,8 +92,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		http.StatusOK,
 		"Login successful",
 		&dto.LoginResponse{
-			AccessToken: res.AccessToken,
-			User:        *res.User,
+			User: *res.User,
 		},
 	)
 }
