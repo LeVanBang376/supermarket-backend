@@ -16,6 +16,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Rau muống VietGAP",
 			BrandID:       "B0001",
 			UnitID:        "U0001",
+			UnitPrice:     25000,
 			ShelfLifeDays: 3,
 		},
 		{
@@ -23,6 +24,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Cải ngọt VietGAP",
 			BrandID:       "B0002",
 			UnitID:        "U0001",
+			UnitPrice:     28000,
 			ShelfLifeDays: 4,
 		},
 		{
@@ -30,6 +32,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Cải xanh VietGAP",
 			BrandID:       "B0002",
 			UnitID:        "U0001",
+			UnitPrice:     27000,
 			ShelfLifeDays: 4,
 		},
 		{
@@ -37,6 +40,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Mồng tơi VietGAP",
 			BrandID:       "B0003",
 			UnitID:        "U0001",
+			UnitPrice:     26000,
 			ShelfLifeDays: 3,
 		},
 		{
@@ -44,6 +48,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Cà chua VietGAP",
 			BrandID:       "B0003",
 			UnitID:        "U0005",
+			UnitPrice:     35000,
 			ShelfLifeDays: 7,
 		},
 		{
@@ -51,6 +56,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Dưa leo VietGAP",
 			BrandID:       "B0004",
 			UnitID:        "U0005",
+			UnitPrice:     30000,
 			ShelfLifeDays: 7,
 		},
 		{
@@ -58,6 +64,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Ớt đỏ VietGAP",
 			BrandID:       "B0004",
 			UnitID:        "U0005",
+			UnitPrice:     60000,
 			ShelfLifeDays: 10,
 		},
 		{
@@ -65,6 +72,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Bắp cải VietGAP",
 			BrandID:       "B0001",
 			UnitID:        "U0004",
+			UnitPrice:     22000,
 			ShelfLifeDays: 14,
 		},
 		{
@@ -72,6 +80,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Bí đỏ VietGAP",
 			BrandID:       "B0001",
 			UnitID:        "U0005",
+			UnitPrice:     25000,
 			ShelfLifeDays: 21,
 		},
 		{
@@ -79,6 +88,7 @@ func seedSKUs(db *gorm.DB) error {
 			SKUName:       "Su su VietGAP",
 			BrandID:       "B0002",
 			UnitID:        "U0005",
+			UnitPrice:     28000,
 			ShelfLifeDays: 10,
 		},
 	}

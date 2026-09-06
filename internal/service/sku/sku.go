@@ -35,6 +35,7 @@ func (s *Service) Create(
 		SKUName:       req.SKUName,
 		BrandID:       req.BrandID,
 		UnitID:        req.UnitID,
+		UnitPrice:     req.UnitPrice,
 		ShelfLifeDays: req.ShelfLifeDays,
 	}
 
@@ -119,6 +120,10 @@ func (s *Service) Update(
 
 	if req.UnitID != nil {
 		sku.UnitID = *req.UnitID
+	}
+
+	if req.UnitPrice != nil {
+		sku.UnitPrice = *req.UnitPrice
 	}
 
 	if req.ShelfLifeDays != nil {

@@ -2,6 +2,17 @@ definitions:
   gin.H:
     additionalProperties: {}
     type: object
+  supermarket-backend_internal_dto.AddOrderItemRequest:
+    properties:
+      quantity:
+        type: number
+      sku_barcode:
+        maxLength: 30
+        type: string
+    required:
+    - quantity
+    - sku_barcode
+    type: object
   supermarket-backend_internal_dto.BranchResponse:
     properties:
       address:
@@ -74,6 +85,27 @@ definitions:
     - expected_delivery_at
     - products
     type: object
+  supermarket-backend_internal_dto.CreateOrderRequest:
+    properties:
+      branch_id:
+        maxLength: 6
+        type: string
+    required:
+    - branch_id
+    type: object
+  supermarket-backend_internal_dto.CreatePaymentRequest:
+    properties:
+      amount:
+        type: number
+      method:
+        maxLength: 20
+        type: string
+      transaction_ref:
+        type: string
+    required:
+    - amount
+    - method
+    type: object
   supermarket-backend_internal_dto.CreateSKURequest:
     properties:
       brand_id:
@@ -91,12 +123,16 @@ definitions:
       unit_id:
         maxLength: 5
         type: string
+      unit_price:
+        minimum: 0
+        type: number
     required:
     - brand_id
     - shelf_life_days
     - sku_barcode
     - sku_name
     - unit_id
+    - unit_price
     type: object
   supermarket-backend_internal_dto.CreateUnitRequest:
     properties:
@@ -178,6 +214,81 @@ definitions:
       user:
         $ref: '#/definitions/supermarket-backend_internal_dto.UserResponse'
     type: object
+  supermarket-backend_internal_dto.OrderItemResponse:
+    properties:
+      created_at:
+        type: string
+      discount_amount:
+        type: number
+      order_id:
+        type: string
+      quantity:
+        type: number
+      sku_barcode:
+        type: string
+      sku_name:
+        type: string
+      subtotal:
+        type: number
+      unit_id:
+        type: string
+      unit_name:
+        type: string
+      unit_price:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.OrderResponse:
+    properties:
+      branch_id:
+        type: string
+      cashier_id:
+        type: string
+      created_at:
+        type: string
+      discount_amount:
+        type: number
+      items:
+        items:
+          $ref: '#/definitions/supermarket-backend_internal_dto.OrderItemResponse'
+        type: array
+      order_id:
+        type: string
+      payments:
+        items:
+          $ref: '#/definitions/supermarket-backend_internal_dto.PaymentResponse'
+        type: array
+      status:
+        type: string
+      subtotal:
+        type: number
+      total_amount:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  supermarket-backend_internal_dto.PaymentResponse:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      method:
+        type: string
+      order_id:
+        type: string
+      paid_at:
+        type: string
+      payment_id:
+        type: string
+      status:
+        type: string
+      transaction_ref:
+        type: string
+      updated_at:
+        type: string
+    type: object
   supermarket-backend_internal_dto.PositionResponse:
     properties:
       position_id:
@@ -212,6 +323,8 @@ definitions:
         type: string
       unit_name:
         type: string
+      unit_price:
+        type: number
     type: object
   supermarket-backend_internal_dto.StockResponse:
     properties:
@@ -294,6 +407,11 @@ definitions:
     required:
     - status
     type: object
+  supermarket-backend_internal_dto.UpdateOrderItemRequest:
+    properties:
+      quantity:
+        type: number
+    type: object
   supermarket-backend_internal_dto.UpdateSKURequest:
     properties:
       brand_id:
@@ -308,6 +426,9 @@ definitions:
       unit_id:
         maxLength: 5
         type: string
+      unit_price:
+        minimum: 0
+        type: number
     type: object
   supermarket-backend_internal_dto.UpdateUnitRequest:
     properties:
@@ -1094,6 +1215,434 @@ paths:
       summary: Get products of a tote
       tags:
       - import-request-products
+  /orders:
+    get:
+      description: Get all orders
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.OrderResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get all orders
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: Create a new order
+      parameters:
+      - description: Create order
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create order
+      tags:
+      - orders
+  /orders/{order_id}:
+    get:
+      description: Get an order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get order by ID
+      tags:
+      - orders
+  /orders/{order_id}/cancel:
+    patch:
+      description: Cancel an order
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Cancel order
+      tags:
+      - orders
+  /orders/{order_id}/items:
+    get:
+      description: Get all items of an order
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.OrderItemResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get order items
+      tags:
+      - order-items
+    post:
+      consumes:
+      - application/json
+      description: Add a SKU to an order
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      - description: Add order item
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.AddOrderItemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.OrderItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Add item to order
+      tags:
+      - order-items
+  /orders/{order_id}/items/{sku_barcode}:
+    delete:
+      description: Delete an item from an order
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      - description: SKU barcode
+        in: path
+        name: sku_barcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Delete order item
+      tags:
+      - order-items
+    get:
+      description: Get an order item by order ID and SKU barcode
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      - description: SKU barcode
+        in: path
+        name: sku_barcode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.OrderItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get order item
+      tags:
+      - order-items
+    patch:
+      consumes:
+      - application/json
+      description: Update the quantity of an order item
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      - description: SKU barcode
+        in: path
+        name: sku_barcode
+        required: true
+        type: string
+      - description: Update order item
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.UpdateOrderItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.OrderItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Update order item
+      tags:
+      - order-items
+  /orders/{order_id}/payments:
+    get:
+      description: Get all payments of an order
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/supermarket-backend_internal_dto.PaymentResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get order payments
+      tags:
+      - payments
+    post:
+      consumes:
+      - application/json
+      description: Create a payment for an order
+      parameters:
+      - description: Order ID
+        in: path
+        name: order_id
+        required: true
+        type: string
+      - description: Create payment
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/supermarket-backend_internal_dto.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create payment
+      tags:
+      - payments
+  /payments/{payment_id}:
+    get:
+      description: Get a payment by ID
+      parameters:
+      - description: Payment ID
+        in: path
+        name: payment_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_dto.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get payment by ID
+      tags:
+      - payments
   /positions:
     get:
       description: Get all positions
