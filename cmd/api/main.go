@@ -37,6 +37,7 @@ import (
 	stockRepository "supermarket-backend/internal/repository/stock"
 	unitRepository "supermarket-backend/internal/repository/unit"
 	userRepository "supermarket-backend/internal/repository/user"
+	userSessionRepository "supermarket-backend/internal/repository/user_session"
 
 	"supermarket-backend/internal/routes"
 
@@ -105,6 +106,7 @@ func main() {
 
 	// Repositories
 	userRepo := userRepository.NewRepository()
+	userSessionRepo := userSessionRepository.NewRepository()
 	branchRepo := branchRepository.NewRepository()
 	brandRepo := brandRepository.NewRepository()
 	unitRepo := unitRepository.NewRepository()
@@ -125,6 +127,7 @@ func main() {
 	authSvc := authService.NewService(
 		database,
 		userRepo,
+		userSessionRepo,
 		jwtService,
 	)
 

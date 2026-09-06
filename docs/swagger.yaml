@@ -467,6 +467,13 @@ definitions:
     - BranchTypeHeadquarters
     - BranchTypeSupermarket
     - BranchTypeSupplier
+  supermarket-backend_internal_service_auth.RefreshResult:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -478,7 +485,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticate a user and set the access token in an HttpOnly cookie
+      description: Authenticate a user and set access and refresh tokens in HttpOnly
+        cookies
       parameters:
       - description: Login credentials
         in: body
@@ -506,6 +514,28 @@ paths:
       summary: User login
       tags:
       - Auth
+  /auth/logout:
+    post:
+      description: Logout the current user by revoking the refresh token and clearing
+        authentication cookies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - CookieAuth: []
+      summary: User logout
+      tags:
+      - Auth
   /auth/me:
     get:
       description: Get information of the currently authenticated user
@@ -529,6 +559,30 @@ paths:
       security:
       - CookieAuth: []
       summary: Get current user
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      description: Refresh the access and refresh tokens using the refresh token stored
+        in an HttpOnly cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/supermarket-backend_internal_service_auth.RefreshResult'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refresh access token
       tags:
       - Auth
   /branches:
