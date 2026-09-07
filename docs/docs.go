@@ -1211,6 +1211,18 @@ const docTemplate = `{
                 "summary": "Get all orders",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Branch ID",
+                        "name": "branch_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Order status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "default": 1,
                         "description": "Page number",
@@ -2806,9 +2818,6 @@ const docTemplate = `{
         "supermarket-backend_internal_dto.LoginResponse": {
             "type": "object",
             "properties": {
-                "access_token": {
-                    "type": "string"
-                },
                 "user": {
                     "$ref": "#/definitions/supermarket-backend_internal_dto.UserResponse"
                 }
@@ -2867,16 +2876,11 @@ const docTemplate = `{
                 "discount_amount": {
                     "type": "number"
                 },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/supermarket-backend_internal_dto.OrderItemResponse"
-                    }
-                },
                 "order_id": {
                     "type": "string"
                 },
                 "payments": {
+                    "description": "Items    []*OrderItemResponse ` + "`" + `json:\"items\"` + "`" + `",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/supermarket-backend_internal_dto.PaymentResponse"

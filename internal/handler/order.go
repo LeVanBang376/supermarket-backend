@@ -90,16 +90,30 @@ func (h *OrderHandler) Create(c *gin.Context) {
 // @Description  Get all orders
 // @Tags         orders
 // @Produce      json
+// @Param        branch_id query string false "Branch ID"
+// @Param        status query string false "Order status"
 // @Param        page query int false "Page number" default(1)
 // @Param        per_page query int false "Number of items per page" default(10)
 // @Success      200 {array} dto.OrderResponse
 // @Failure      500 {object} gin.H
 // @Router       /orders [get]
 func (h *OrderHandler) FindAll(c *gin.Context) {
+	var query dto.FindAllOrdersQuery
+
+	if err := c.ShouldBindQuery(&query); err != nil {
+		response.NonDataJSON(
+			c.Writer,
+			http.StatusBadRequest,
+			err.Error(),
+		)
+		return
+	}
+
 	pagination := response.NewPagination(c.Request)
 
 	orders, err := h.service.FindAll(
 		c.Request.Context(),
+		&query,
 		pagination,
 	)
 	if err != nil {

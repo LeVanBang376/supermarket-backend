@@ -8,6 +8,11 @@ import (
 	"supermarket-backend/internal/model"
 )
 
+type FindAllOrdersQuery struct {
+	BranchID *string `form:"branch_id"`
+	Status   *string `form:"status"`
+}
+
 type CreateOrderRequest struct {
 	BranchID string `json:"branch_id" binding:"required,max=6"`
 }

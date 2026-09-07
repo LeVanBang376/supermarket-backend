@@ -55,11 +55,13 @@ func (s *Service) Create(
 
 func (s *Service) FindAll(
 	ctx context.Context,
+	query *dto.FindAllOrdersQuery,
 	pagination *response.Pagination,
 ) ([]*dto.OrderResponse, error) {
 	orders, err := s.repository.FindAll(
 		ctx,
 		s.db,
+		query,
 		pagination,
 	)
 	if err != nil {

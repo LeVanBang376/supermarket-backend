@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 
+	"supermarket-backend/internal/dto"
 	"supermarket-backend/internal/model"
 	"supermarket-backend/internal/response"
 
@@ -55,15 +56,33 @@ func (r *Repository) FindByID(
 func (r *Repository) FindAll(
 	ctx context.Context,
 	db *gorm.DB,
+	query *dto.FindAllOrdersQuery,
 	pagination *response.Pagination,
 ) ([]*model.Order, error) {
 	var orders []*model.Order
-
 	var total int64
 
-	if err := db.
+	queryBuilder := db.
 		WithContext(ctx).
-		Model(&model.Order{}).
+		Model(&model.Order{})
+
+	// Filter
+	if query != nil && query.BranchID != nil {
+		queryBuilder = queryBuilder.Where(
+			"branch_id = ?",
+			*query.BranchID,
+		)
+	}
+
+	if query != nil && query.Status != nil {
+		queryBuilder = queryBuilder.Where(
+			"status = ?",
+			*query.Status,
+		)
+	}
+
+	// Count total records after applying filter
+	if err := queryBuilder.
 		Count(&total).
 		Error; err != nil {
 		return nil, err
@@ -78,8 +97,8 @@ func (r *Repository) FindAll(
 
 	offset := (pagination.Page - 1) * pagination.PerPage
 
-	if err := db.
-		WithContext(ctx).
+	// Get data
+	if err := queryBuilder.
 		Preload("Branch").
 		Preload("Cashier").
 		Limit(pagination.PerPage).

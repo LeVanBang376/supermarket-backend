@@ -209,8 +209,6 @@ definitions:
     type: object
   supermarket-backend_internal_dto.LoginResponse:
     properties:
-      access_token:
-        type: string
       user:
         $ref: '#/definitions/supermarket-backend_internal_dto.UserResponse'
     type: object
@@ -249,13 +247,10 @@ definitions:
         type: string
       discount_amount:
         type: number
-      items:
-        items:
-          $ref: '#/definitions/supermarket-backend_internal_dto.OrderItemResponse'
-        type: array
       order_id:
         type: string
       payments:
+        description: Items    []*OrderItemResponse `json:"items"`
         items:
           $ref: '#/definitions/supermarket-backend_internal_dto.PaymentResponse'
         type: array
@@ -1273,6 +1268,14 @@ paths:
     get:
       description: Get all orders
       parameters:
+      - description: Branch ID
+        in: query
+        name: branch_id
+        type: string
+      - description: Order status
+        in: query
+        name: status
+        type: string
       - default: 1
         description: Page number
         in: query

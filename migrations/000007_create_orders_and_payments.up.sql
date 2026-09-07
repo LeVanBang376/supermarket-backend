@@ -87,3 +87,7 @@ CREATE INDEX idx_orders_branch_id
 
 CREATE INDEX idx_payments_order_id
     ON payments(order_id);
+
+CREATE INDEX idx_orders_open_branch
+ON orders(branch_id, created_at DESC)
+WHERE status = 'OPEN';
