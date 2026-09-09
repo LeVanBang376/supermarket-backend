@@ -82,6 +82,7 @@ func (s *Service) Login(
 	accessToken, err := s.jwtService.GenerateToken(
 		user.UserID,
 		user.Username,
+		user.BranchID,
 		user.RoleID,
 	)
 	if err != nil {
@@ -223,6 +224,7 @@ func (s *Service) Refresh(
 	accessToken, err := s.jwtService.GenerateToken(
 		user.UserID,
 		user.Username,
+		user.BranchID,
 		user.RoleID,
 	)
 	if err != nil {

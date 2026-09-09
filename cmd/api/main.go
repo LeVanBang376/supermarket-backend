@@ -22,12 +22,16 @@ import (
 	"supermarket-backend/internal/config"
 	"supermarket-backend/internal/handler"
 	"supermarket-backend/internal/middleware"
+	"supermarket-backend/internal/ws"
 
 	branchRepository "supermarket-backend/internal/repository/branch"
 	brandRepository "supermarket-backend/internal/repository/brand"
 	importRequestRepository "supermarket-backend/internal/repository/import_request"
 	importRequestProductRepository "supermarket-backend/internal/repository/import_request_product"
 	importRequestToteRepository "supermarket-backend/internal/repository/import_request_tote"
+	orderRepository "supermarket-backend/internal/repository/order"
+	orderItemRepository "supermarket-backend/internal/repository/order_item"
+	paymentRepository "supermarket-backend/internal/repository/payment"
 	positionRepository "supermarket-backend/internal/repository/position"
 	roleRepository "supermarket-backend/internal/repository/role"
 	skuRepository "supermarket-backend/internal/repository/sku"
@@ -44,6 +48,9 @@ import (
 	importRequestService "supermarket-backend/internal/service/import_request"
 	importRequestProductService "supermarket-backend/internal/service/import_request_product"
 	importRequestToteService "supermarket-backend/internal/service/import_request_tote"
+	orderService "supermarket-backend/internal/service/order"
+	orderItemService "supermarket-backend/internal/service/order_item"
+	paymentService "supermarket-backend/internal/service/payment"
 	positionService "supermarket-backend/internal/service/position"
 	roleService "supermarket-backend/internal/service/role"
 	skuService "supermarket-backend/internal/service/sku"
@@ -98,6 +105,9 @@ func main() {
 	jwtService := jwt.NewJWTService(cfg.JWTSecret)
 	authMiddleware := middleware.Auth(jwtService)
 
+	websocketHub := ws.NewWebsocketHub()
+	go websocketHub.Run(rootCtx)
+
 	// Repositories
 	userRepo := userRepository.NewRepository()
 	userSessionRepo := userSessionRepository.NewRepository()
@@ -112,6 +122,10 @@ func main() {
 	importRequestRepo := importRequestRepository.NewRepository()
 	importRequestProductRepo := importRequestProductRepository.NewRepository()
 	importRequestToteRepo := importRequestToteRepository.NewRepository()
+
+	orderRepo := orderRepository.NewRepository()
+	orderItemRepo := orderItemRepository.NewRepository()
+	paymentRepo := paymentRepository.NewRepository()
 
 	// Services
 	authSvc := authService.NewService(
@@ -174,6 +188,25 @@ func main() {
 		importRequestRepo,
 	)
 
+	orderSvc := orderService.NewService(
+		database,
+		orderRepo,
+	)
+
+	orderItemSvc := orderItemService.NewService(
+		database,
+		websocketHub,
+		orderItemRepo,
+		orderRepo,
+		skuRepo,
+	)
+
+	paymentSvc := paymentService.NewService(
+		database,
+		paymentRepo,
+		orderRepo,
+	)
+
 	// Handlers
 	authHandler := handler.NewAuthHandler(authSvc)
 	branchHandler := handler.NewBranchHandler(branchSvc)
@@ -195,6 +228,20 @@ func main() {
 	importRequestToteHandler := handler.NewImportRequestToteHandler(
 		importRequestToteSvc,
 	)
+
+	orderHandler := handler.NewOrderHandler(
+		orderSvc,
+	)
+
+	orderItemHandler := handler.NewOrderItemHandler(
+		orderItemSvc,
+	)
+
+	paymentHandler := handler.NewPaymentHandler(
+		paymentSvc,
+	)
+
+	websocketHandler := handler.NewWebsocketHandler(websocketHub, cfg.AllowedOrigins)
 
 	// Gin
 	router := gin.New()
@@ -286,6 +333,20 @@ func main() {
 		importRequestHandler,
 		importRequestProductHandler,
 		importRequestToteHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterOrderRoutes(
+		router,
+		orderHandler,
+		orderItemHandler,
+		paymentHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterWebsocketRoutes(
+		router,
+		websocketHandler,
 		authMiddleware,
 	)
 

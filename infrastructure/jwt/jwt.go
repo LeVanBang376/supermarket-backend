@@ -21,6 +21,7 @@ func NewJWTService(secret string) *JWTService {
 type Claims struct {
 	UserID   uuid.UUID `json:"user_id"`
 	Username string    `json:"username"`
+	BranchID string    `json:"branch_id"`
 	RoleID   string    `json:"role_id"`
 	jwt.RegisteredClaims
 }
@@ -28,6 +29,7 @@ type Claims struct {
 func (s *JWTService) GenerateToken(
 	userID uuid.UUID,
 	username string,
+	branchID string,
 	roleID string,
 ) (string, error) {
 	now := time.Now()
@@ -35,6 +37,7 @@ func (s *JWTService) GenerateToken(
 	claims := Claims{
 		UserID:   userID,
 		Username: username,
+		BranchID: branchID,
 		RoleID:   roleID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(15 * time.Minute)),
