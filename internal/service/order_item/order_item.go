@@ -2,12 +2,14 @@ package order_item
 
 import (
 	"context"
+	"fmt"
 
 	"supermarket-backend/internal/dto"
 	"supermarket-backend/internal/model"
 	orderRepository "supermarket-backend/internal/repository/order"
 	orderItemRepository "supermarket-backend/internal/repository/order_item"
 	skuRepository "supermarket-backend/internal/repository/sku"
+	"supermarket-backend/internal/ws"
 
 	"gorm.io/gorm"
 
@@ -16,6 +18,7 @@ import (
 
 type Service struct {
 	db              *gorm.DB
+	hub             *ws.WebsocketHub
 	repository      *orderItemRepository.Repository
 	orderRepository *orderRepository.Repository
 	skuRepository   *skuRepository.Repository
@@ -23,18 +26,23 @@ type Service struct {
 
 func NewService(
 	db *gorm.DB,
+	hub *ws.WebsocketHub,
 	repository *orderItemRepository.Repository,
 	orderRepository *orderRepository.Repository,
+	skuRepository *skuRepository.Repository,
 ) *Service {
 	return &Service{
 		db:              db,
+		hub:             hub,
 		repository:      repository,
 		orderRepository: orderRepository,
+		skuRepository:   skuRepository,
 	}
 }
 
 func (s *Service) Create(
 	ctx context.Context,
+	actorID uuid.UUID,
 	orderID uuid.UUID,
 	req *dto.AddOrderItemRequest,
 ) (*dto.OrderItemResponse, error) {
@@ -116,6 +124,20 @@ func (s *Service) Create(
 		return nil, err
 	}
 
+	message := fmt.Sprintf(
+		`{"type":"ORDER_UPDATED","order_id":"%s"}`,
+		orderID,
+	)
+
+	if err := s.hub.Broadcast(
+		ctx,
+		message,
+		actorID,
+		ws.WsCustomerDisplayType,
+	); err != nil {
+		return nil, err
+	}
+
 	return dto.FromOrderItemModelToResponse(item), nil
 }
 
@@ -168,6 +190,7 @@ func (s *Service) FindByOrderID(
 
 func (s *Service) Update(
 	ctx context.Context,
+	actorID uuid.UUID,
 	orderID uuid.UUID,
 	skuBarcode string,
 	req *dto.UpdateOrderItemRequest,
@@ -223,15 +246,30 @@ func (s *Service) Update(
 		return nil, err
 	}
 
+	message := fmt.Sprintf(
+		`{"type":"ORDER_UPDATED","order_id":"%s"}`,
+		orderID,
+	)
+
+	if err := s.hub.Broadcast(
+		ctx,
+		message,
+		actorID,
+		ws.WsCustomerDisplayType,
+	); err != nil {
+		return nil, err
+	}
+
 	return dto.FromOrderItemModelToResponse(item), nil
 }
 
 func (s *Service) Delete(
 	ctx context.Context,
+	actorID uuid.UUID,
 	orderID uuid.UUID,
 	skuBarcode string,
 ) error {
-	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		order, err := s.orderRepository.FindByID(
 			ctx,
 			tx,
@@ -260,6 +298,26 @@ func (s *Service) Delete(
 			order,
 		)
 	})
+
+	if err != nil {
+		return err
+	}
+
+	message := fmt.Sprintf(
+		`{"type":"ORDER_UPDATED","order_id":"%s"}`,
+		orderID,
+	)
+
+	if err := s.hub.Broadcast(
+		ctx,
+		message,
+		actorID,
+		ws.WsCustomerDisplayType,
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) recalculateOrder(

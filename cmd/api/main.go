@@ -22,6 +22,7 @@ import (
 	"supermarket-backend/internal/config"
 	"supermarket-backend/internal/handler"
 	"supermarket-backend/internal/middleware"
+	"supermarket-backend/internal/ws"
 
 	branchRepository "supermarket-backend/internal/repository/branch"
 	brandRepository "supermarket-backend/internal/repository/brand"
@@ -103,6 +104,9 @@ func main() {
 	// Infrastructure
 	jwtService := jwt.NewJWTService(cfg.JWTSecret)
 	authMiddleware := middleware.Auth(jwtService)
+
+	websocketHub := ws.NewWebsocketHub()
+	go websocketHub.Run(rootCtx)
 
 	// Repositories
 	userRepo := userRepository.NewRepository()
@@ -191,8 +195,10 @@ func main() {
 
 	orderItemSvc := orderItemService.NewService(
 		database,
+		websocketHub,
 		orderItemRepo,
 		orderRepo,
+		skuRepo,
 	)
 
 	paymentSvc := paymentService.NewService(
@@ -234,6 +240,8 @@ func main() {
 	paymentHandler := handler.NewPaymentHandler(
 		paymentSvc,
 	)
+
+	websocketHandler := handler.NewWebsocketHandler(websocketHub, cfg.AllowedOrigins)
 
 	// Gin
 	router := gin.New()
@@ -333,6 +341,12 @@ func main() {
 		orderHandler,
 		orderItemHandler,
 		paymentHandler,
+		authMiddleware,
+	)
+
+	routes.RegisterWebsocketRoutes(
+		router,
+		websocketHandler,
 		authMiddleware,
 	)
 

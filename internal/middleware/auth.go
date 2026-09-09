@@ -67,3 +67,13 @@ func GetUserID(c *gin.Context) uuid.UUID {
 
 	return claims.UserID
 }
+
+func GetUserBranchID(c *gin.Context) string {
+	claims := GetClaims(c)
+
+	if claims == nil {
+		return ""
+	}
+
+	return claims.BranchID
+}

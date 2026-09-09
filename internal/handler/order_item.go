@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"supermarket-backend/internal/dto"
+	"supermarket-backend/internal/middleware"
 	"supermarket-backend/internal/response"
 	"supermarket-backend/internal/service/order_item"
 
@@ -63,11 +64,24 @@ func (h *OrderItemHandler) Create(c *gin.Context) {
 		return
 	}
 
+	actorID := middleware.GetUserID(c)
+
+	if actorID == uuid.Nil {
+		response.NonDataJSON(
+			c.Writer,
+			http.StatusUnauthorized,
+			"Unauthorized",
+		)
+		return
+	}
+
 	item, err := h.service.Create(
 		c.Request.Context(),
+		actorID,
 		orderID,
 		&req,
 	)
+
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.NonDataJSON(
@@ -250,8 +264,20 @@ func (h *OrderItemHandler) Update(c *gin.Context) {
 		return
 	}
 
+	actorID := middleware.GetUserID(c)
+
+	if actorID == uuid.Nil {
+		response.NonDataJSON(
+			c.Writer,
+			http.StatusUnauthorized,
+			"Unauthorized",
+		)
+		return
+	}
+
 	item, err := h.service.Update(
 		c.Request.Context(),
+		actorID,
 		orderID,
 		skuBarcode,
 		&req,
@@ -317,8 +343,20 @@ func (h *OrderItemHandler) Delete(c *gin.Context) {
 
 	skuBarcode := c.Param("sku_barcode")
 
+	actorID := middleware.GetUserID(c)
+
+	if actorID == uuid.Nil {
+		response.NonDataJSON(
+			c.Writer,
+			http.StatusUnauthorized,
+			"Unauthorized",
+		)
+		return
+	}
+
 	err = h.service.Delete(
 		c.Request.Context(),
+		actorID,
 		orderID,
 		skuBarcode,
 	)
